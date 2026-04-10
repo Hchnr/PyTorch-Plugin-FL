@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+
+if(GPU_PLATFORM STREQUAL "muxi")
+  project(FLAGOS_RUNTIME CXX C)
+else()
+  project(FLAGOS_RUNTIME CUDA CXX C)
+endif()
+
+set(LIBRARY_NAME flagos)
+
+file(GLOB_RECURSE SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/csrc/*.cpp"
+)
+
+add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})
+
+target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(GPU_PLATFORM STREQUAL "muxi")
+  target_link_libraries(${LIBRARY_NAME} PRIVATE ${CUDA_RUNTIME_LIB})
+else()
+  find_package(CUDAToolkit REQUIRED)
+  target_link_libraries(${LIBRARY_NAME} PRIVATE CUDA::cudart)
+endif()
+
+install(TARGETS ${LIBRARY_NAME}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
