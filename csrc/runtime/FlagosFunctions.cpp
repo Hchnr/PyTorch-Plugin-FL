@@ -1,4 +1,4 @@
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 
 #include "FlagosException.h"
 #include "FlagosFunctions.h"

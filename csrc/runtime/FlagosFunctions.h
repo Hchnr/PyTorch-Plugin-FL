@@ -1,6 +1,6 @@
 #pragma once
 
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 #include <include/Macros.h>
 #include <c10/core/Device.h>
 #include <cstdint>

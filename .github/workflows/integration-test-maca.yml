@@ -44,7 +44,7 @@ jobs:
         run: |
           export LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH
           pip install --upgrade pip
-          GPU_PLATFORM=muxi pip install -e . --no-build-isolation
+          ACCELERATOR=maca pip install -e . --no-build-isolation
           pip install pytest
 
       - name: Run ops tests

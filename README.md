@@ -23,7 +23,7 @@ cd torch-plugin-FL
 pip install -e . --no-build-isolation
 
 # For MACA platform
-GPU_PLATFORM=muxi pip install -e . --no-build-isolation
+ACCELERATOR=maca pip install -e . --no-build-isolation
 ```
 
 ## Usage
@@ -120,7 +120,7 @@ Install Triton (versions for MACA).
 
 Install Torch-plugin-FL.
 ```bash
-GPU_PLATFORM=muxi pip install -e . --no-build-isolation -v
+ACCELERATOR=maca pip install -e . --no-build-isolation -v
 ```
 
 ## Project Structure
@@ -143,10 +143,10 @@ torch-plugin-FL/
 │       ├── FlagosHooks.*           #   PyTorch backend hooks integration
 │       ├── FlagosGuard.*           #   Device guard (RAII device switching)
 │       └── FlagosException.h       #   Error handling
-├── third_party/
-│   └── flagos/                     # Low-level device abstraction (CUDA wrappers)
-│       ├── include/flagos.h        #   C API (foSetDevice, foMalloc, foStream, etc.)
-│       └── csrc/                   #   Implementation (thin wrappers around CUDA APIs)
+├── accelerator/
+│   ├── include/flagos.h            # C API (foSetDevice, foMalloc, foStream, etc.)
+│   └── csrc/
+│       └── cuda/                   # CUDA/MACA runtime SDK implementation
 ├── torch_flagos/                   # Python package
 │   ├── __init__.py                 #   Entry point: registers FlagGems ops on import
 │   ├── integration.py              #   FlagGems operator registration logic

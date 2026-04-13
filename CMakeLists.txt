@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-set(GPU_PLATFORM "nvidia" CACHE STRING "GPU platform: nvidia or muxi")
+set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda or maca")
 
-if(GPU_PLATFORM STREQUAL "muxi")
+if(ACCELERATOR STREQUAL "maca")
   project(TORCH_FLAGOS CXX C)
 else()
   project(TORCH_FLAGOS CUDA CXX C)
@@ -35,7 +35,7 @@ set(CMAKE_INSTALL_MESSAGE NEVER)
 
 set(Torch_DIR ${PYTORCH_INSTALL_DIR}/share/cmake/Torch)
 
-if(GPU_PLATFORM STREQUAL "muxi")
+if(ACCELERATOR STREQUAL "maca")
   # Muxi MACA SDK: use cu-bridge headers and runtime_cu library
   if(NOT MACA_PATH)
     set(MACA_PATH "$ENV{MACA_PATH}")
@@ -91,6 +91,6 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include(${PROJECT_SOURCE_DIR}/cmake/TorchPythonTargets.cmake)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/flagos)
+add_subdirectory(${PROJECT_SOURCE_DIR}/accelerator)
 add_subdirectory(${PROJECT_SOURCE_DIR}/csrc)
 add_subdirectory(${PROJECT_SOURCE_DIR}/torch_flagos/csrc)

@@ -1,7 +1,7 @@
 #include "Minimal.h"
 
 #include <ATen/native/Resize.h>
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 
 namespace at::native::flagos {
 

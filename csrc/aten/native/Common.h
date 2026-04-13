@@ -3,7 +3,7 @@
 #include <ATen/ATen.h>
 #include <ATen/native/CPUFallback.h>
 
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 
 namespace at::native::flagos {
 

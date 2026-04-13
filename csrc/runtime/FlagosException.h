@@ -1,6 +1,6 @@
 #pragma once
 
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 
 #include <c10/util/Exception.h>
 

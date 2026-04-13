@@ -14,8 +14,8 @@ from setuptools import Extension, find_packages, setup
 IS_DARWIN = platform.system() == "Darwin"
 IS_WINDOWS = platform.system() == "Windows"
 
-# GPU platform: "nvidia" (default) or "muxi"
-GPU_PLATFORM = os.environ.get("GPU_PLATFORM", "nvidia").lower()
+# Accelerator platform: "cuda" (default) or "maca"
+ACCELERATOR = os.environ.get("ACCELERATOR", "cuda").lower()
 
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -74,7 +74,7 @@ def _ensure_maca_cudart_shim():
     ctypes.CDLL(shim_so, mode=ctypes.RTLD_GLOBAL)
 
 
-if GPU_PLATFORM == "muxi":
+if ACCELERATOR == "maca":
     _ensure_maca_cudart_shim()
 
 
@@ -104,9 +104,9 @@ def build_deps():
         "-DPYTORCH_INSTALL_DIR=" + get_pytorch_dir(),
     ]
 
-    cmake_args.append(f"-DGPU_PLATFORM={GPU_PLATFORM}")
+    cmake_args.append(f"-DACCELERATOR={ACCELERATOR}")
 
-    if GPU_PLATFORM == "muxi":
+    if ACCELERATOR == "maca":
         # Muxi MACA SDK: no nvcc needed. CMakeLists.txt pre-creates
         # torch::cudart to skip PyTorch's cuda.cmake entirely.
         maca_path = (

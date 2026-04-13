@@ -29,10 +29,10 @@ jobs:
 
       - name: Build package
         env:
-          GPU_PLATFORM: muxi
+          ACCELERATOR: maca
         run: |
           export LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH
-          GPU_PLATFORM=muxi python -m build --wheel
+          ACCELERATOR=maca python -m build --wheel
 
       - name: Verify wheel
         run: |

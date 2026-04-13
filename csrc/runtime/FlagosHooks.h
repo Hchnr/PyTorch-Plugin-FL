@@ -7,7 +7,7 @@
 #include <c10/core/Device.h>
 
 #include <cuda_runtime.h>
-#include <third_party/flagos/include/flagos.h>
+#include <accelerator/include/flagos.h>
 
 #include "FlagosGenerator.h"
 #include "FlagosHostAllocator.h"
