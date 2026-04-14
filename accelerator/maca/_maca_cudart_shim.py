@@ -3,7 +3,7 @@
 On MetaX (MACA) hardware, PyTorch's .so files require CUDA runtime symbols
 with @@libcudart.so.12 version tags.  MACA's libsymbol_cu.so provides these
 symbols but without version tags.  We build and load a shim library
-(csrc/cudart_shim.c) that re-exports all needed symbols with the correct
+(accelerator/csrc/maca/cudart_shim.c) that re-exports all needed symbols with the correct
 version tags.
 """
 
@@ -31,8 +31,8 @@ def ensure_cudart_shim():
         return  # Not a MACA environment
 
     pkg_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.dirname(pkg_dir)
-    csrc = os.path.join(base_dir, "csrc")
+    base_dir = os.path.dirname(os.path.dirname(pkg_dir))  # project root
+    csrc = os.path.join(base_dir, "accelerator", "csrc", "maca")
     build_dir = os.path.join(base_dir, "build")
 
     shim_src = os.path.join(csrc, "cudart_shim.c")

@@ -90,6 +90,9 @@ All three scripts accept a `--device` flag (`cuda` or `flagos`) and are otherwis
 **Basic ops and tensor tests (pytest):**
 
 ```bash
+# Disable auto-loading of FlagCX
+export TORCH_DEVICE_BACKEND_AUTOLOAD=0
+
 pytest tests/integration/test_ops.py -v --device cuda    # CUDA
 pytest tests/integration/test_ops.py -v --device flagos  # MACA
 ```
@@ -145,8 +148,12 @@ torch-plugin-FL/
 │       └── FlagosException.h       #   Error handling
 ├── accelerator/
 │   ├── include/flagos.h            # C API (foSetDevice, foMalloc, foStream, etc.)
-│   └── csrc/
-│       └── cuda/                   # CUDA/MACA runtime SDK implementation
+│   ├── csrc/
+│   │   ├── cuda/                   # CUDA/MACA runtime SDK implementation
+│   │   └── maca/                   # MACA-specific C shim (cudart_shim.c, libcudart.version)
+│   └── maca/                       # MACA Python compatibility layer
+│       ├── _maca_compat.py         #   torch.cuda patches for MetaX hardware
+│       └── _maca_cudart_shim.py    #   cudart shim build & load
 ├── torch_flagos/                   # Python package
 │   ├── __init__.py                 #   Entry point: registers FlagGems ops on import
 │   ├── integration.py              #   FlagGems operator registration logic

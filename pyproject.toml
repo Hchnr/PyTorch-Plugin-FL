@@ -36,4 +36,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["torch_flagos*"]
+include = ["torch_flagos*", "accelerator*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
