@@ -87,9 +87,9 @@ def parse_args():
 
 def sync(args):
     if args.device == "flagos":
-        import torch_flagos
+        import torch_fl
 
-        torch_flagos.flagos.synchronize()
+        torch_fl.flagos.synchronize()
     else:
         torch.cuda.synchronize()
 
@@ -113,9 +113,9 @@ def setup(args):
     rank = int(os.environ.get("RANK", 0))
 
     if args.device == "flagos":
-        import torch_flagos
+        import torch_fl
 
-        torch_flagos.flagos.set_device(local_rank)
+        torch_fl.flagos.set_device(local_rank)
     else:
         torch.cuda.set_device(local_rank)
 
@@ -124,7 +124,7 @@ def setup(args):
 
     # --- Distributed init ---
     if args.device == "flagos":
-        import torch_flagos.distributed as flagos_dist
+        import torch_fl.distributed as flagos_dist
 
         flagos_dist.init_process_group(backend=args.comm)
     else:
@@ -221,7 +221,7 @@ def load_model(args, device, rank):
 def wrap_ddp(model, args, local_rank, rank):
     """Wrap model with DDP."""
     if args.device == "flagos":
-        import torch_flagos.distributed as flagos_dist
+        import torch_fl.distributed as flagos_dist
 
         model = flagos_dist.DistributedDataParallel(model)
         print_rank0("    DDP: flagos mode (python_reducer + custom grad hooks)", rank)
@@ -412,14 +412,14 @@ def main():
     print_rank0("=" * 60, rank)
 
     if args.device == "flagos":
-        import torch_flagos
+        import torch_fl
 
         print_rank0(
-            f"Flagos device available: {torch_flagos.flagos.is_available()}", rank
+            f"Flagos device available: {torch_fl.flagos.is_available()}", rank
         )
-        print_rank0(f"FlagGems registered: {torch_flagos.is_flaggems_enabled()}", rank)
+        print_rank0(f"FlagGems registered: {torch_fl.is_flaggems_enabled()}", rank)
         print_rank0(
-            f"Registered ops count: {len(torch_flagos.get_registered_ops())}", rank
+            f"Registered ops count: {len(torch_fl.get_registered_ops())}", rank
         )
     else:
         print_rank0(f"CUDA available: {torch.cuda.is_available()}", rank)

@@ -23,9 +23,9 @@ from torch.utils.data import DataLoader
 
 def sync(dev):
     if dev == "flagos":
-        import torch_flagos
+        import torch_fl
 
-        torch_flagos.flagos.synchronize()
+        torch_fl.flagos.synchronize()
     else:
         torch.cuda.synchronize()
 
@@ -40,9 +40,9 @@ def ctx(request):
     lr = request.config.getoption("--lr")
 
     if dev == "flagos":
-        import torch_flagos
+        import torch_fl
 
-        torch_flagos.flagos.set_device(0)
+        torch_fl.flagos.set_device(0)
 
     device = f"{dev}:0"
 

@@ -4,7 +4,7 @@ Integration module for registering FlagGems operators with the flagos device.
 This module provides utilities to register FlagGems' Triton kernels as
 implementations for the PrivateUse1 (flagos) dispatch key.
 
-FlagGems operators are automatically registered when torch_flagos is imported.
+FlagGems operators are automatically registered when torch_fl is imported.
 You can use the functions in this module for more fine-grained control.
 """
 

@@ -2,7 +2,7 @@
 Basic Operations and Tensor Tests
 
 Runs on both CUDA and flagos (MACA) devices via the --device argument.
-torch_flagos makes flagos a drop-in replacement for cuda, so the test
+torch_fl makes flagos a drop-in replacement for cuda, so the test
 logic is identical for both platforms.
 
 Usage:
@@ -19,14 +19,14 @@ import torch
 def device(request):
     dev = request.config.getoption("--device")
     if dev == "flagos":
-        import torch_flagos  # noqa: F401 — must be imported before torch on MACA
+        import torch_fl  # noqa: F401 — must be imported before torch on MACA
 
-        if not torch_flagos.flagos.is_available():
+        if not torch_fl.flagos.is_available():
             pytest.exit("flagos device is not available.")
         print(
-            f"\nflagos device count={torch_flagos.flagos.device_count()}  "
-            f"FlagGems enabled={torch_flagos.is_flaggems_enabled()}  "
-            f"registered ops={len(torch_flagos.get_registered_ops())}"
+            f"\nflagos device count={torch_fl.flagos.device_count()}  "
+            f"FlagGems enabled={torch_fl.is_flaggems_enabled()}  "
+            f"registered ops={len(torch_fl.get_registered_ops())}"
         )
     else:
         if not torch.cuda.is_available():
@@ -312,8 +312,8 @@ class TestSync:
     def test_synchronize(self, device):
         dev_type = device.split(":")[0]
         if dev_type == "flagos":
-            import torch_flagos
+            import torch_fl
 
-            torch_flagos.flagos.synchronize()
+            torch_fl.flagos.synchronize()
         else:
             torch.cuda.synchronize()

@@ -35,10 +35,10 @@ jobs:
           pip install dist/*.whl
           python -c "
           from importlib.metadata import metadata, files
-          meta = metadata('torch_flagos')
+          meta = metadata('torch_fl')
           print(f\"Package: {meta['Name']} {meta['Version']}\")
-          pkg_files = [str(f) for f in files('torch_flagos')]
-          assert any('torch_flagos' in f for f in pkg_files), 'torch_flagos module not found in wheel'
+          pkg_files = [str(f) for f in files('torch_fl')]
+          assert any('torch_fl' in f for f in pkg_files), 'torch_fl module not found in wheel'
           print(f'Installed files: {len(pkg_files)}')
           print('Wheel verified successfully')
           "

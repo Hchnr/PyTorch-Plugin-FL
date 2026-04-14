@@ -20,12 +20,12 @@ def ctx(request):
     max_new_tokens = request.config.getoption("--max-new-tokens")
 
     if dev == "flagos":
-        import torch_flagos
+        import torch_fl
 
         print(
-            f"\nflagos device count={torch_flagos.flagos.device_count()}  "
-            f"FlagGems enabled={torch_flagos.is_flaggems_enabled()}  "
-            f"registered ops={len(torch_flagos.get_registered_ops())}"
+            f"\nflagos device count={torch_fl.flagos.device_count()}  "
+            f"FlagGems enabled={torch_fl.is_flaggems_enabled()}  "
+            f"registered ops={len(torch_fl.get_registered_ops())}"
         )
     else:
         print(f"\nCUDA device: {torch.cuda.get_device_name(0)}")
@@ -69,9 +69,9 @@ def ctx(request):
 
 def sync(dev):
     if dev == "flagos":
-        import torch_flagos
+        import torch_fl
 
-        torch_flagos.flagos.synchronize()
+        torch_fl.flagos.synchronize()
     else:
         torch.cuda.synchronize()
 

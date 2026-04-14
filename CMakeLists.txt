@@ -93,4 +93,4 @@ include(${PROJECT_SOURCE_DIR}/cmake/TorchPythonTargets.cmake)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/accelerator)
 add_subdirectory(${PROJECT_SOURCE_DIR}/csrc)
-add_subdirectory(${PROJECT_SOURCE_DIR}/torch_flagos/csrc)
+add_subdirectory(${PROJECT_SOURCE_DIR}/torch_fl/csrc)

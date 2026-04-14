@@ -12,7 +12,7 @@ to use MACA's native mcruntime API via ctypes, bypassing the incompatible C++ pa
 Usage:
     Before importing flag_gems or any code that calls torch.cuda.get_device_properties:
 
-        from torch_flagos._maca_compat import patch_torch_cuda_for_maca
+        from torch_fl._maca_compat import patch_torch_cuda_for_maca
         patch_torch_cuda_for_maca()
 
 Environment:

@@ -6,8 +6,8 @@ PyTorch's distributed communication backends (NCCL, FlagCX, etc.).
 
 Typical usage::
 
-    import torch_flagos
-    import torch_flagos.distributed as flagos_dist
+    import torch_fl
+    import torch_fl.distributed as flagos_dist
 
     # Initialize process group — automatically registers backend for
     # privateuseone and patches dist collectives for flagos tensors.
@@ -47,7 +47,7 @@ def _patch_dist_collectives():
         return
     _collectives_patched = True
 
-    import torch_flagos._C as _C
+    import torch_fl._C as _C
 
     def _ensure_cuda(tensor):
         if isinstance(tensor, torch.Tensor) and tensor.device.type in (

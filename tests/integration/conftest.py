@@ -35,9 +35,9 @@ def pytest_configure(config):
     except ValueError:
         return
     if dev == "flagos":
-        import torch_flagos  # noqa: F401 — must be imported before torch on MACA
+        import torch_fl  # noqa: F401 — must be imported before torch on MACA
 
-        if not torch_flagos.flagos.is_available():
+        if not torch_fl.flagos.is_available():
             pytest.exit("flagos device is not available.")
     else:
         import torch

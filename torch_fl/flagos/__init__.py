@@ -1,6 +1,6 @@
 import torch
 
-import torch_flagos._C  # type: ignore[misc]
+import torch_fl._C  # type: ignore[misc]
 
 from . import meta  # noqa: F401
 
@@ -21,27 +21,27 @@ class device:
         self.prev_idx = -1
 
     def __enter__(self):
-        self.prev_idx = torch_flagos._C._exchangeDevice(self.idx)
+        self.prev_idx = torch_fl._C._exchangeDevice(self.idx)
 
     def __exit__(self, type, value, traceback):
-        self.idx = torch_flagos._C._set_device(self.prev_idx)
+        self.idx = torch_fl._C._set_device(self.prev_idx)
         return False
 
 
 def is_available():
-    return torch_flagos._C._get_device_count() > 0
+    return torch_fl._C._get_device_count() > 0
 
 
 def device_count() -> int:
-    return torch_flagos._C._get_device_count()
+    return torch_fl._C._get_device_count()
 
 
 def current_device():
-    return torch_flagos._C._get_device()
+    return torch_fl._C._get_device()
 
 
 def set_device(device) -> None:
-    return torch_flagos._C._set_device(device)
+    return torch_fl._C._set_device(device)
 
 
 def synchronize(device=None):
@@ -49,14 +49,14 @@ def synchronize(device=None):
 
     Args:
         device (torch.device or int, optional): device to synchronize.
-            It uses the current device, given by :func:`~torch_flagos.current_device`,
+            It uses the current device, given by :func:`~torch_fl.current_device`,
             if :attr:`device` is ``None`` (default).
     """
     if device is not None:
-        with torch_flagos.flagos.device(device):
-            torch_flagos._C._synchronize()
+        with torch_fl.flagos.device(device):
+            torch_fl._C._synchronize()
     else:
-        torch_flagos._C._synchronize()
+        torch_fl._C._synchronize()
 
 
 def init():
@@ -71,7 +71,7 @@ def _lazy_init():
     global _initialized
     if is_initialized():
         return
-    torch_flagos._C._init()
+    torch_fl._C._init()
     _initialized = True
 
 

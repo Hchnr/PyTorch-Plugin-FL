@@ -1,23 +1,23 @@
 """
-Qwen3 Inference Test - Using torch_flagos (MACA manual test)
+Qwen3 Inference Test - Using torch_fl (MACA manual test)
 
 Usage:
     python tests/manual/test_qwen3_infer.py
     LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH python tests/manual/test_qwen3_infer.py
 """
 
-import torch_flagos  # Must be imported before torch on MACA (loads cudart shim)
+import torch_fl  # Must be imported before torch on MACA (loads cudart shim)
 import torch
 import time
 
 print("=" * 60)
-print("torch_flagos Qwen3 Inference Test")
+print("torch_fl Qwen3 Inference Test")
 print("=" * 60)
 
-print(f"\nFlagos device available: {torch_flagos.flagos.is_available()}")
-print(f"Device count: {torch_flagos.flagos.device_count()}")
-print(f"FlagGems registered: {torch_flagos.is_flaggems_enabled()}")
-print(f"Registered ops count: {len(torch_flagos.get_registered_ops())}")
+print(f"\nFlagos device available: {torch_fl.flagos.is_available()}")
+print(f"Device count: {torch_fl.flagos.device_count()}")
+print(f"FlagGems registered: {torch_fl.is_flaggems_enabled()}")
+print(f"Registered ops count: {len(torch_fl.get_registered_ops())}")
 
 from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: E402
 
@@ -50,7 +50,7 @@ print(f"Input token count: {input_len}")
 
 
 def sync():
-    torch_flagos.flagos.synchronize()
+    torch_fl.flagos.synchronize()
 
 
 times = []
@@ -79,7 +79,7 @@ for i in range(4):
     )
 
 print("\n" + "=" * 60)
-print("Summary (torch_flagos + FlagGems):")
+print("Summary (torch_fl + FlagGems):")
 for label, t, tc in zip(run_labels, times, token_counts):
     print(f"  {label}: {t:.2f}s ({tc / t:.2f} tokens/s)")
 avg_t = sum(times[1:]) / 3

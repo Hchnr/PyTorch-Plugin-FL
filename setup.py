@@ -99,7 +99,7 @@ def build_deps():
 
     cmake_args = [
         "-DCMAKE_INSTALL_PREFIX="
-        + os.path.realpath(os.path.join(BASE_DIR, "torch_flagos")),
+        + os.path.realpath(os.path.join(BASE_DIR, "torch_fl")),
         "-DPYTHON_INCLUDE_DIR=" + sysconfig.get_paths().get("include"),
         "-DPYTORCH_INSTALL_DIR=" + get_pytorch_dir(),
     ]
@@ -144,12 +144,12 @@ def build_deps():
 
 class BuildClean(clean):
     def run(self):
-        for i in ["build", "install", "torch_flagos/lib"]:
+        for i in ["build", "install", "torch_fl/lib"]:
             dirs = os.path.join(BASE_DIR, i)
             if os.path.exists(dirs) and os.path.isdir(dirs):
                 shutil.rmtree(dirs)
 
-        for dirpath, _, filenames in os.walk(os.path.join(BASE_DIR, "torch_flagos")):
+        for dirpath, _, filenames in os.walk(os.path.join(BASE_DIR, "torch_fl")):
             for filename in filenames:
                 if filename.endswith(".so"):
                     os.remove(os.path.join(dirpath, filename))
@@ -183,18 +183,18 @@ def main():
 
     ext_modules = [
         Extension(
-            name="torch_flagos._C",
-            sources=["torch_flagos/csrc/stub.c"],
+            name="torch_fl._C",
+            sources=["torch_fl/csrc/stub.c"],
             language="c",
             extra_compile_args=extra_compile_args,
             libraries=["torch_bindings"],
-            library_dirs=[os.path.join(BASE_DIR, "torch_flagos/lib")],
+            library_dirs=[os.path.join(BASE_DIR, "torch_fl/lib")],
             extra_link_args=extra_link_args,
         )
     ]
 
     package_data = {
-        "torch_flagos": [
+        "torch_fl": [
             "lib/*.so*",
             "lib/*.dylib*",
             "lib/*.dll",
@@ -203,11 +203,11 @@ def main():
     }
 
     setup(
-        name="torch_flagos",
+        name="torch_fl",
         version="0.1.0",
         description="FlagGems operators as a custom PyTorch device (flagos)",
         author="FlagGems Team",
-        packages=find_packages(include=["torch_flagos*", "accelerator*"]),
+        packages=find_packages(include=["torch_fl*", "accelerator*"]),
         package_dir={"": "."},
         package_data=package_data,
         ext_modules=ext_modules,

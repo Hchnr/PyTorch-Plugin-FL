@@ -3,7 +3,7 @@ A PyTorch plugin built on FlagOS to provide a unified and efficient multi-chip s
 
 ## Overview
 
-This package registers FlagGems' high-performance Triton kernels as a custom PyTorch device backend using PyTorch's PrivateUse1 extension mechanism. When you import `torch_flagos`, all FlagGems operators are automatically registered for the `flagos` device.
+This package registers FlagGems' high-performance Triton kernels as a custom PyTorch device backend using PyTorch's PrivateUse1 extension mechanism. When you import `torch_fl`, all FlagGems operators are automatically registered for the `flagos` device.
 
 ## Installation
 
@@ -30,12 +30,12 @@ ACCELERATOR=maca pip install -e . --no-build-isolation
 
 ```python
 import torch
-import torch_flagos  # Automatically registers FlagGems operators for "flagos" device
+import torch_fl  # Automatically registers FlagGems operators for "flagos" device
 
 # Check device and FlagGems status
-print(f"Device available: {torch_flagos.flagos.is_available()}")
-print(f"FlagGems enabled: {torch_flagos.is_flaggems_enabled()}")
-print(f"Registered ops: {len(torch_flagos.get_registered_ops())}")
+print(f"Device available: {torch_fl.flagos.is_available()}")
+print(f"FlagGems enabled: {torch_fl.is_flaggems_enabled()}")
+print(f"Registered ops: {len(torch_fl.get_registered_ops())}")
 
 # Create tensors on flagos device - operations automatically use FlagGems kernels
 x = torch.randn(1000, 1000, device="flagos")
@@ -52,24 +52,24 @@ flagos_tensor = cpu_tensor.to("flagos")
 back_to_cpu = flagos_tensor.cpu()
 
 # Use device context manager
-with torch_flagos.flagos.device(0):
+with torch_fl.flagos.device(0):
     a = torch.randn(10, 10, device="flagos")
 
 
 # Check if FlagGems is available
-torch_flagos.is_flaggems_available()  # -> bool
+torch_fl.is_flaggems_available()  # -> bool
 
 # Check if FlagGems operators are registered
-torch_flagos.is_flaggems_enabled()  # -> bool
+torch_fl.is_flaggems_enabled()  # -> bool
 
 # Get list of registered operator names
-torch_flagos.get_registered_ops()  # -> List[str]
+torch_fl.get_registered_ops()  # -> List[str]
 
-# Device module (torch_flagos.flagos)
-torch_flagos.flagos.is_available()  # -> bool
-torch_flagos.flagos.device_count()  # -> int
-torch_flagos.flagos.current_device()  # -> int
-torch_flagos.flagos.set_device(device_id)
+# Device module (torch_fl.flagos)
+torch_fl.flagos.is_available()  # -> bool
+torch_fl.flagos.device_count()  # -> int
+torch_fl.flagos.current_device()  # -> int
+torch_fl.flagos.set_device(device_id)
 ```
 
 ## Testing
@@ -85,7 +85,7 @@ tests/
 
 ### Integration tests (`tests/integration/`)
 
-All three scripts accept a `--device` flag (`cuda` or `flagos`) and are otherwise identical — this is the core goal of `torch_flagos`.
+All three scripts accept a `--device` flag (`cuda` or `flagos`) and are otherwise identical — this is the core goal of `torch_fl`.
 
 **Basic ops and tensor tests (pytest):**
 
@@ -154,12 +154,12 @@ torch-plugin-FL/
 │   └── maca/                       # MACA Python compatibility layer
 │       ├── _maca_compat.py         #   torch.cuda patches for MetaX hardware
 │       └── _maca_cudart_shim.py    #   cudart shim build & load
-├── torch_flagos/                   # Python package
+├── torch_fl/                   # Python package
 │   ├── __init__.py                 #   Entry point: registers FlagGems ops on import
 │   ├── integration.py              #   FlagGems operator registration logic
 │   ├── distributed.py              #   Distributed training (DDP/FSDP support for flagos)
 │   ├── _utils.py                   #   Utility functions
-│   ├── flagos/                     #   Device module (torch_flagos.flagos)
+│   ├── flagos/                     #   Device module (torch_fl.flagos)
 │   │   ├── __init__.py             #     Device APIs (set_device, synchronize, etc.)
 │   │   ├── random.py               #     RNG APIs
 │   │   └── meta.py                 #     Device metadata

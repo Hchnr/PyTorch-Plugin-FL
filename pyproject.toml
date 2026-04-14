@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "cmake>=3.18", "torch==2.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "torch_flagos"
+name = "torch_fl"
 version = "0.1.0"
 description = "FlagGems operators as a custom PyTorch device (flagos)"
 readme = "README.md"
@@ -36,7 +36,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["torch_flagos*", "accelerator*"]
+include = ["torch_fl*", "accelerator*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

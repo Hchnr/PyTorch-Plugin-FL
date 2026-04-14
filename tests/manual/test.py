@@ -1,19 +1,19 @@
 # python tests/test.py
 # LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH python tests/test.py
 
-import torch_flagos  # Must be imported before torch on MACA (loads cudart shim)
+import torch_fl  # Must be imported before torch on MACA (loads cudart shim)
 import torch
 
 print("=" * 60)
-print("torch_flagos Test")
+print("torch_fl Test")
 print("=" * 60)
 
 # Check device and FlagGems status
-print(f"\nDevice available: {torch_flagos.flagos.is_available()}")
-print(f"Device count: {torch_flagos.flagos.device_count()}")
-print(f"FlagGems available: {torch_flagos.is_flaggems_available()}")
-print(f"FlagGems enabled: {torch_flagos.is_flaggems_enabled()}")
-print(f"Registered FlagGems ops: {len(torch_flagos.get_registered_ops())}")
+print(f"\nDevice available: {torch_fl.flagos.is_available()}")
+print(f"Device count: {torch_fl.flagos.device_count()}")
+print(f"FlagGems available: {torch_fl.is_flaggems_available()}")
+print(f"FlagGems enabled: {torch_fl.is_flaggems_enabled()}")
+print(f"Registered FlagGems ops: {len(torch_fl.get_registered_ops())}")
 
 # Create tensors on flagos device
 # Note: randn uses CPU fallback, then copy to flagos
@@ -43,7 +43,7 @@ print(f"CPU -> flagos -> CPU roundtrip: {torch.allclose(cpu_tensor, back_to_cpu)
 
 # Use device context manager
 print("\n--- Device context manager ---")
-with torch_flagos.flagos.device(0):
+with torch_fl.flagos.device(0):
     a = torch.empty(10, 10, device="flagos")
     print(f"Created tensor in context: shape={a.shape}, device={a.device}")
 
@@ -52,19 +52,19 @@ print("All tests passed!")
 print("=" * 60)
 
 # Check if FlagGems is available
-print(f"{torch_flagos.is_flaggems_available()=}")
+print(f"{torch_fl.is_flaggems_available()=}")
 
 # Check if FlagGems operators are registered
-print(f"{torch_flagos.is_flaggems_enabled()=}")
+print(f"{torch_fl.is_flaggems_enabled()=}")
 
 # Get list of registered operator names
-registered_ops = torch_flagos.get_registered_ops()
+registered_ops = torch_fl.get_registered_ops()
 print(f"Registered FlagGems ops: {len(registered_ops)}")
 print(f"Registered ops: {registered_ops}")
 
-# Device module (torch_flagos.flagos)
-print(f"Flagos device available: {torch_flagos.flagos.is_available()}")
-print(f"Flagos device count: {torch_flagos.flagos.device_count()}")
-print(f"Current device before set_device: {torch_flagos.flagos.current_device()}")
-torch_flagos.flagos.set_device(1)
-print(f"Current device after set_device: {torch_flagos.flagos.current_device()}")
+# Device module (torch_fl.flagos)
+print(f"Flagos device available: {torch_fl.flagos.is_available()}")
+print(f"Flagos device count: {torch_fl.flagos.device_count()}")
+print(f"Current device before set_device: {torch_fl.flagos.current_device()}")
+torch_fl.flagos.set_device(1)
+print(f"Current device after set_device: {torch_fl.flagos.current_device()}")

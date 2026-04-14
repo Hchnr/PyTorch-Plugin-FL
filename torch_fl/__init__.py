@@ -25,12 +25,12 @@ if is_maca_available():
     patch_torch_cuda_for_maca()
 
 
-import torch_flagos._C  # type: ignore[misc]  # noqa: E402
-import torch_flagos.flagos  # noqa: E402
+import torch_fl._C  # type: ignore[misc]  # noqa: E402
+import torch_fl.flagos  # noqa: E402
 
 
 torch.utils.rename_privateuse1_backend("flagos")
-torch._register_device_module("flagos", torch_flagos.flagos)
+torch._register_device_module("flagos", torch_fl.flagos)
 torch.utils.generate_methods_for_privateuse1_backend(for_storage=True)
 
 
@@ -266,7 +266,7 @@ _composite_ops_lib = _register_composite_ops()
 
 
 # Re-export integration utilities
-from torch_flagos.integration import (  # noqa: E402
+from torch_fl.integration import (  # noqa: E402
     is_flaggems_available,
     enable_flaggems_for_flagos,
     use_flaggems,

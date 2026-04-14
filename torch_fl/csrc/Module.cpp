@@ -272,7 +272,7 @@ static PyMethodDef methods[] = {
 
 extern "C" FLAGOS_EXPORT PyObject* initFlagosModule(void) {
   static struct PyModuleDef flagos_C_module = {
-      PyModuleDef_HEAD_INIT, "torch_flagos._C", nullptr, -1, methods};
+      PyModuleDef_HEAD_INIT, "torch_fl._C", nullptr, -1, methods};
   PyObject* mod = PyModule_Create(&flagos_C_module);
 
   return mod;

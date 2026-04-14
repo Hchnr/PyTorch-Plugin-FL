@@ -1,4 +1,4 @@
-set(LIBRARY_NAME torch_flagos)
+set(LIBRARY_NAME torch_fl)
 
 file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"

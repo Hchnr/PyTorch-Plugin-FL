@@ -38,7 +38,7 @@ jobs:
       - name: Check device availability
         run: |
           export LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH
-          python -c "import torch_flagos; assert torch_flagos.flagos.is_available(), 'flagos device not available'"
+          python -c "import torch_fl; assert torch_fl.flagos.is_available(), 'flagos device not available'"
 
       - name: Install dependencies
         run: |
