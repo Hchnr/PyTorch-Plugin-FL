@@ -9,16 +9,14 @@ This package registers FlagGems' high-performance Triton kernels as a custom PyT
 
 ### Prerequisites
 
-- Python >= 3.8
-- PyTorch >= 2.0
-- CUDA Toolkit
-- CMake >= 3.18
-- FlagGems (for optimized operators)
+- Python == 3.12
+- PyTorch == 2.9.0
+- FlagGems == 4.2.1
 
 ### Build from source
 
 ```bash
-cd torch-plugin-FL
+cd PyTorch-Plugin-FL
 # For CUDA platform
 pip install -e . --no-build-isolation
 
@@ -27,6 +25,24 @@ ACCELERATOR=maca pip install -e . --no-build-isolation
 ```
 
 ## Usage
+
+### Import Order (MACA Platform Only)
+
+**IMPORTANT**: On MetaX (MACA) hardware, you must import `torch_fl` **before** importing `torch`:
+
+```python
+import torch_fl  # Must come first on MACA
+import torch
+
+# Now safe to use torch and torch_fl
+x = torch.randn(100, 100, device="flagos")
+```
+
+**Why?** PyTorch's bundled CUDA 12.x runtime is ABI-incompatible with MACA's cu-bridge (CUDA 11.6 compatibility layer). `torch_fl` loads a shim library that provides the required symbol versions before PyTorch's `.so` files are loaded. If you import `torch` first, the incompatible symbols are already loaded and the shim cannot fix them.
+
+On CUDA platforms, import order doesn't matter.
+
+### Basic Usage
 
 ```python
 import torch
@@ -72,6 +88,56 @@ torch_fl.flagos.current_device()  # -> int
 torch_fl.flagos.set_device(device_id)
 ```
 
+## Project Structure
+
+```
+PyTorch-Plugin-FL/
+├── CMakeLists.txt                  # Top-level CMake build
+├── setup.py / pyproject.toml       # Python packaging
+├── csrc/                           # C++ source code
+│   ├── aten/                       # Operator implementations & registration
+│   │   ├── FlagosMinimal.cpp       #   PrivateUse1 operator dispatch registrations
+│   │   └── native/                 #   Native implementations
+│   │       ├── Minimal.cpp         #     Basic tensor ops (empty, set_, copy, clone, etc.)
+│   │       └── Common.h
+│   └── runtime/                    # Device runtime layer
+│       ├── FlagosFunctions.cpp/h   #   Device management (set/get/exchange device)
+│       ├── FlagosDeviceAllocator.* #   GPU memory allocation (wraps cudaMalloc)
+│       ├── FlagosHostAllocator.*   #   Pinned host memory allocation
+│       ├── FlagosGenerator.*       #   Random number generator
+│       ├── FlagosHooks.*           #   PyTorch backend hooks integration
+│       ├── FlagosGuard.*           #   Device guard (RAII device switching)
+│       └── FlagosException.h       #   Error handling
+├── accelerator/
+│   ├── include/flagos.h            # C API (foSetDevice, foMalloc, foStream, etc.)
+│   ├── csrc/
+│   │   ├── cuda/                   # CUDA/MACA runtime SDK implementation
+│   │   └── maca/                   # MACA-specific C shim (cudart_shim.c, libcudart.version)
+│   └── maca/                       # MACA Python compatibility layer
+│       ├── _maca_compat.py         #   torch.cuda patches for MetaX hardware
+│       └── _maca_cudart_shim.py    #   cudart shim build & load
+├── torch_fl/                       # Python package
+│   ├── __init__.py                 #   Entry point: registers FlagGems ops on import
+│   ├── integration.py              #   FlagGems operator registration logic
+│   ├── distributed.py              #   Distributed training (DDP/FSDP support for flagos)
+│   ├── _utils.py                   #   Utility functions
+│   ├── flagos/                     #   Device module (torch_fl.flagos)
+│   │   ├── __init__.py             #     Device APIs (set_device, synchronize, etc.)
+│   │   ├── random.py               #     RNG APIs
+│   │   └── meta.py                 #     Device metadata
+│   ├── csrc/                       #   Python C binding
+│   │   └── Module.cpp
+│   └── lib/                        #   Built shared libraries
+└── tests/                          # Test suite
+    ├── common/                     #   Shared utilities
+    │   └── dummy_dataset.py        #     Synthetic dataset for training tests
+    ├── integration/                #   CI integration tests (cuda + flagos, same scripts)
+    │   ├── test_ops.py             #     Basic ops and tensor tests (pytest, --device cuda|flagos)
+    │   ├── test_qwen3_infer.py     #     Qwen3 end-to-end inference (--device cuda|flagos)
+    │   └── test_qwen3_train.py     #     Qwen3 end-to-end training (--device cuda|flagos, single/DDP/FSDP)
+    └── manual/                     #   Manual scripts for interactive exploration
+```
+
 ## Testing
 
 The test suite is split into integration tests (CI) and manual scripts (interactive exploration).
@@ -79,7 +145,7 @@ The test suite is split into integration tests (CI) and manual scripts (interact
 ```
 tests/
 ├── common/              # Shared utilities (DummyTextDataset)
-├── integration/         # CI integration tests — same scripts for both platforms
+├── integration/         # CI integration tests — same scripts for all platforms
 └── manual/              # Manual scripts for interactive exploration
 ```
 
@@ -113,7 +179,7 @@ pytest tests/integration/test_qwen3_train.py -v -s --device flagos --steps 10
 ```
 
 ## MACA Specific
-Add the MACA cu-bridge library path to `LD_LIBRARY_PATH`:
+Add the MACA cu-bridge library path to `LD_LIBRARY_PATH`, for example:
 
 ```bash
 export LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH
@@ -121,68 +187,7 @@ export LD_LIBRARY_PATH=/opt/maca-3.3.0/tools/cu-bridge/lib:$LD_LIBRARY_PATH
 
 Install Triton (versions for MACA).
 
-Install Torch-plugin-FL.
+Install PyTorch-Plugin-FL.
 ```bash
 ACCELERATOR=maca pip install -e . --no-build-isolation -v
 ```
-
-## Project Structure
-
-```
-torch-plugin-FL/
-├── CMakeLists.txt                  # Top-level CMake build
-├── setup.py / pyproject.toml       # Python packaging
-├── csrc/                           # C++ source code
-│   ├── aten/                       # Operator dispatch & registration
-│   │   ├── FlagosMinimal.cpp       #   PrivateUse1 operator dispatch registrations
-│   │   └── native/                 #   Native implementations
-│   │       ├── Minimal.cpp         #     Basic tensor ops (empty, set_, copy, clone, etc.)
-│   │       └── Common.h            #     Shared helpers
-│   └── runtime/                    # Device runtime layer
-│       ├── FlagosFunctions.cpp/h   #   Device management (set/get/exchange device)
-│       ├── FlagosDeviceAllocator.* #   GPU memory allocation (wraps cudaMalloc)
-│       ├── FlagosHostAllocator.*   #   Pinned host memory allocation
-│       ├── FlagosGenerator.*       #   Random number generator
-│       ├── FlagosHooks.*           #   PyTorch backend hooks integration
-│       ├── FlagosGuard.*           #   Device guard (RAII device switching)
-│       └── FlagosException.h       #   Error handling
-├── accelerator/
-│   ├── include/flagos.h            # C API (foSetDevice, foMalloc, foStream, etc.)
-│   ├── csrc/
-│   │   ├── cuda/                   # CUDA/MACA runtime SDK implementation
-│   │   └── maca/                   # MACA-specific C shim (cudart_shim.c, libcudart.version)
-│   └── maca/                       # MACA Python compatibility layer
-│       ├── _maca_compat.py         #   torch.cuda patches for MetaX hardware
-│       └── _maca_cudart_shim.py    #   cudart shim build & load
-├── torch_fl/                   # Python package
-│   ├── __init__.py                 #   Entry point: registers FlagGems ops on import
-│   ├── integration.py              #   FlagGems operator registration logic
-│   ├── distributed.py              #   Distributed training (DDP/FSDP support for flagos)
-│   ├── _utils.py                   #   Utility functions
-│   ├── flagos/                     #   Device module (torch_fl.flagos)
-│   │   ├── __init__.py             #     Device APIs (set_device, synchronize, etc.)
-│   │   ├── random.py               #     RNG APIs
-│   │   └── meta.py                 #     Device metadata
-│   ├── csrc/                       #   Python C extension
-│   │   └── Module.cpp              #     _C module (flagos<->CUDA view conversions)
-│   └── lib/                        #   Built shared libraries
-└── tests/                          # Test suite
-    ├── common/                     #   Shared utilities
-    │   └── dummy_dataset.py        #     Synthetic dataset for training tests
-    ├── integration/                #   CI integration tests (cuda + flagos, same scripts)
-    │   ├── test_ops.py             #     Basic ops and tensor tests (pytest, --device cuda|flagos)
-    │   ├── test_qwen3_infer.py     #     Qwen3 end-to-end inference (--device cuda|flagos)
-    │   └── test_qwen3_train.py     #     Qwen3 end-to-end training (--device cuda|flagos, single/DDP/FSDP)
-    └── manual/                     #   Manual scripts for interactive exploration
-        ├── test.py                 #     flagos device + FlagGems smoke test
-        ├── test_qwen3_infer.py     #     Qwen3 inference (flagos)
-        ├── test_qwen3_train.py     #     Qwen3 training (cuda/flagos, single/DDP/FSDP)
-        ├── test_qwen.sh            #     GPU pool scheduler (parallel multi-config run)
-        ├── dummy_dataset.py        #     Synthetic dataset
-        └── muxi/
-            └── test_cuda_api.c     #     Low-level MACA CUDA API test (C)
-```
-
-## License
-
-Apache License 2.0
