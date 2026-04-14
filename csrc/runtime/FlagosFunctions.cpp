@@ -1,3 +1,9 @@
+// Copyright (c) 2026, BAAI. All rights reserved.
+//
+// Adopted from https://github.com/pytorch/pytorch/tree/main/test/cpp_extensions/open_registration_extension/torch_openreg
+// Below is the original copyright:
+// Copyright (c) Meta Platforms, Inc. and affiliates.
+
 #include <accelerator/include/flagos.h>
 
 #include "FlagosException.h"

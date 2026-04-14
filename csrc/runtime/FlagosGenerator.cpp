@@ -1,3 +1,11 @@
+// Copyright (c) 2026, BAAI. All rights reserved.
+//
+// Copied from https://github.com/pytorch/pytorch/tree/main/test/cpp_extensions/open_registration_extension/torch_openreg/csrc/runtime/OpenRegGenerator.cpp
+// with namespace c10::openreg renamed to c10::flagos, OpenRegGeneratorImpl renamed to FlagosGeneratorImpl,
+// and getDefaultOpenRegGenerator renamed to getDefaultFlagosGenerator.
+// Below is the original copyright:
+// Copyright (c) Meta Platforms, Inc. and affiliates.
+
 #include "FlagosGenerator.h"
 
 // Default, global generators, one per device.

@@ -1,3 +1,10 @@
+# Copyright (c) 2026, BAAI. All rights reserved.
+#
+# Copied from https://github.com/pytorch/pytorch/tree/main/test/cpp_extensions/open_registration_extension/torch_openreg/torch_openreg/openreg/random.py
+# with "openreg" device name replaced with "flagos" and torch_openreg._C replaced with torch_fl._C.
+# Below is the original copyright:
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
 import torch
 
 import torch_fl._C  # type: ignore[misc]
