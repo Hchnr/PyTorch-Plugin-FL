@@ -9,6 +9,7 @@ This package registers FlagGems' high-performance Triton kernels as a custom PyT
 
 ### Prerequisites
 
+- CUDA Version: 12.9
 - Python == 3.12
 - PyTorch == 2.9.0
 - FlagGems == 4.2.1
