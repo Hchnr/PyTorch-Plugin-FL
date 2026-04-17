@@ -82,6 +82,16 @@ endif()
 
 find_package(Torch REQUIRED)
 
+# Find FlagGems C++ library for operator registration
+find_package(FlagGems QUIET)
+if(FlagGems_FOUND)
+  message(STATUS "Found FlagGems: ${FlagGems_DIR}")
+  set(FLAGGEMS_AVAILABLE TRUE)
+else()
+  message(WARNING "FlagGems C++ library not found. Operators will use Python-level registration (slower).")
+  set(FLAGGEMS_AVAILABLE FALSE)
+endif()
+
 if(DEFINED PYTHON_INCLUDE_DIR)
   include_directories(${PYTHON_INCLUDE_DIR})
 else()

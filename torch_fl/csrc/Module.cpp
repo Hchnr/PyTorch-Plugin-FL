@@ -275,5 +275,14 @@ extern "C" FLAGOS_EXPORT PyObject* initFlagosModule(void) {
       PyModuleDef_HEAD_INIT, "torch_fl._C", nullptr, -1, methods};
   PyObject* mod = PyModule_Create(&flagos_C_module);
 
+  // Expose whether FlagGems C++ registration is active
+  // When FLAGGEMS_AVAILABLE is defined, FlagGemsRegistration.cpp registers
+  // operators via TORCH_LIBRARY_IMPL at .so load time (low CPU overhead).
+#ifdef FLAGGEMS_AVAILABLE
+  PyModule_AddIntConstant(mod, "_flaggems_cpp_registration", 1);
+#else
+  PyModule_AddIntConstant(mod, "_flaggems_cpp_registration", 0);
+#endif
+
   return mod;
 }
