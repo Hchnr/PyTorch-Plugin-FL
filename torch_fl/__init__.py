@@ -92,11 +92,6 @@ _EXCLUDED_OPS = _CPP_REGISTERED_OPS | {
     # limit on large vocab (e.g. Qwen3 151k). Use Python decomposition instead.
     "_log_softmax",
     "_log_softmax_backward_data",
-    # pad / constant_pad_nd: FlagGems pad() redispatches to CompositeImplicitAutograd
-    # (when grad is enabled) which decomposes into constant_pad_nd, but constant_pad_nd
-    # is also registered to PrivateUse1, causing infinite recursion.
-    "pad",
-    "constant_pad_nd",
 }
 
 # When C++ registration is active, these ops are already registered by
@@ -270,7 +265,7 @@ def _register_composite_ops():
         )
         return torch.slice_scatter(grad_input, grad_output, dim, start, end, step)
 
-    # lib.impl("slice_backward", slice_backward_impl, "PrivateUse1")
+    lib.impl("slice_backward", slice_backward_impl, "PrivateUse1")
 
     # log_softmax: decompose into softmax + log to avoid FlagGems Triton kernel
     # that exceeds MACA's 4KB/thread private memory on large vocab dimensions.
