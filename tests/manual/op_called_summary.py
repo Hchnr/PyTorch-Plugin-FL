@@ -58,7 +58,7 @@ else:
     print("No incremental operators found")
 
 # Summary
-print(f"\n=== Summary ===")
+print("\n=== Summary ===")
 print(f"Inference operators: {len(inference_collector.ops)}")
 print(f"Training operators: {len(training_collector.ops)}")
 print(f"Incremental operators: {len(incremental_ops)}")

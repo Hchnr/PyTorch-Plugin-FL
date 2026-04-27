@@ -13,7 +13,6 @@
 #include "functional_ops/mm.h"
 
 #include <ATen/native/CPUFallback.h>
-#include <ATen/native/DispatchStub.h>
 
 #include <torch/library.h>
 
@@ -143,20 +142,16 @@ void wrapper_record_stream(at::Tensor& self, at::Stream s) {
 
 at::Tensor wrapper_mm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), mat2.size(1)}, self.options());
-  auto backend = at::native::flagos::get_backend_for_op("mm");
-  at::native::flagos::log_dispatch("mm", backend);
-  at::native::flagos::structured_mm_out_flagos op(out, backend);
+  at::native::flagos::structured_mm_out_flagos op(out);
   op.meta(self, mat2);
-  op.impl(self, mat2);
+  op.impl(self, mat2, "mm");
   return out;
 }
 
 at::Tensor& wrapper_mm_out(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
-  auto backend = at::native::flagos::get_backend_for_op("mm.out");
-  at::native::flagos::log_dispatch("mm.out", backend);
-  at::native::flagos::structured_mm_out_flagos op(out, backend);
+  at::native::flagos::structured_mm_out_flagos op(out);
   op.meta(self, mat2);
-  op.impl(self, mat2);
+  op.impl(self, mat2, "mm.out");
   return out;
 }
 

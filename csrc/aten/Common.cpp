@@ -104,14 +104,4 @@ FlagosDevice get_backend_for_op(const std::string& op_name) {
   return it != table.end() ? it->second : FlagosDevice::FlagOS;
 }
 
-void log_dispatch(const std::string& op_name, FlagosDevice backend) {
-  static const bool enabled = []() {
-    const char* v = std::getenv("FLAGOS_LOG_DISPATCH");
-    return v && std::string(v) == "1";
-  }();
-  if (!enabled) return;
-  const char* name = (backend == FlagosDevice::CUDA) ? "cuda" : "flaggems";
-  fprintf(stderr, "[flagos dispatch] %s -> %s\n", op_name.c_str(), name);
-}
-
 } // namespace at::native::flagos
