@@ -7,7 +7,7 @@ Verifies that torch.mm and torch.mm.out:
   - dispatch log confirms the actual backend used
 
 Usage:
-    pytest tests/integration/test_mm_dispatch.py -v --device flagos
+    pytest tests/integration/ops/test_mm_dispatch.py -v --device flagos
 """
 
 import os

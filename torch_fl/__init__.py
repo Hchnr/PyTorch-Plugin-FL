@@ -109,6 +109,8 @@ _EXCLUDED_OPS = {
     # backends.conf at load time to route to flaggems or cuda per-op.
     "mm",
     "mm.out",
+    "bmm",
+    "bmm.out",
 }
 
 

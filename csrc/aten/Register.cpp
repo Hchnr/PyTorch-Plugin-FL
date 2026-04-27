@@ -11,6 +11,7 @@
 #include "factory_ops/contiguous_ops.h"
 #include "factory_ops/fallback.h"
 #include "functional_ops/mm.h"
+#include "functional_ops/bmm.h"
 
 #include <ATen/native/CPUFallback.h>
 
@@ -155,6 +156,21 @@ at::Tensor& wrapper_mm_out(const at::Tensor& self, const at::Tensor& mat2, at::T
   return out;
 }
 
+at::Tensor wrapper_bmm(const at::Tensor& self, const at::Tensor& mat2) {
+  auto out = at::empty({self.size(0), self.size(1), mat2.size(2)}, self.options());
+  at::native::flagos::structured_bmm_out_flagos op(out);
+  op.meta(self, mat2);
+  op.impl(self, mat2, "bmm");
+  return out;
+}
+
+at::Tensor& wrapper_bmm_out(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
+  at::native::flagos::structured_bmm_out_flagos op(out);
+  op.meta(self, mat2);
+  op.impl(self, mat2, "bmm.out");
+  return out;
+}
+
 } // namespace
 
 // Register basic operators for PrivateUse1 dispatch key
@@ -179,6 +195,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("record_stream", wrapper_record_stream);
   m.impl("mm", wrapper_mm);
   m.impl("mm.out", wrapper_mm_out);
+  m.impl("bmm", wrapper_bmm);
+  m.impl("bmm.out", wrapper_bmm_out);
 }
 
 // Register fallback for all unimplemented operators
