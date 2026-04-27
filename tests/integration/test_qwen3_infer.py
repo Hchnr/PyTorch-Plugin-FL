@@ -1,34 +1,28 @@
 """
 Qwen3 End-to-End Inference Test (pytest)
 
-Runs on both CUDA and flagos (MACA) devices via the --device argument.
+All tests run on the flagos device.
 
 Usage:
-    pytest tests/integration/test_qwen3_infer.py -v -s --device cuda
-    pytest tests/integration/test_qwen3_infer.py -v -s --device flagos
+    pytest tests/integration/test_qwen3_infer.py -v -s
 """
 
 import time
 import pytest
 import torch
+import torch_fl
 
 
 @pytest.fixture(scope="module")
 def ctx(request):
-    dev = request.config.getoption("--device")
     model_path = request.config.getoption("--model")
     max_new_tokens = request.config.getoption("--max-new-tokens")
 
-    if dev == "flagos":
-        import torch_fl
-
-        print(
-            f"\nflagos device count={torch_fl.flagos.device_count()}  "
-            f"FlagGems enabled={torch_fl.is_flaggems_enabled()}  "
-            f"registered ops={len(torch_fl.get_registered_ops())}"
-        )
-    else:
-        print(f"\nCUDA device: {torch.cuda.get_device_name(0)}")
+    print(
+        f"\nflagos device count={torch_fl.flagos.device_count()}  "
+        f"FlagGems enabled={torch_fl.is_flaggems_enabled()}  "
+        f"registered ops={len(torch_fl.get_registered_ops())}"
+    )
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -37,18 +31,20 @@ def ctx(request):
     model = AutoModelForCausalLM.from_pretrained(
         model_path, torch_dtype=torch.float16, device_map="cpu"
     )
-    device = f"{dev}:0"
+    device = "flagos:0"
     model = model.to(device)
     model.eval()
     print(
-        f"Model device: {next(model.parameters()).device}  load time: {time.time() - t0:.2f}s"
+        f"Model device: {next(model.parameters()).device}  "
+        f"load time: {time.time() - t0:.2f}s"
     )
 
     text = tokenizer.apply_chat_template(
         [
             {
                 "role": "user",
-                "content": "Give me a short introduction to large language model.",
+                "content": "Give me a short introduction to "
+                "large language model.",
             }
         ],
         tokenize=False,
@@ -62,27 +58,23 @@ def ctx(request):
         "model": model,
         "tokenizer": tokenizer,
         "inputs": inputs,
-        "device": dev,
         "max_new_tokens": max_new_tokens,
     }
 
 
-def sync(dev):
-    if dev == "flagos":
-        import torch_fl
-
-        torch_fl.flagos.synchronize()
-    else:
-        torch.cuda.synchronize()
+def sync():
+    torch_fl.flagos.synchronize()
 
 
 def run_inference(ctx):
-    model, inputs, dev = ctx["model"], ctx["inputs"], ctx["device"]
-    sync(dev)
+    model, inputs = ctx["model"], ctx["inputs"]
+    sync()
     t0 = time.time()
     with torch.no_grad():
-        output = model.generate(**inputs, max_new_tokens=ctx["max_new_tokens"])
-    sync(dev)
+        output = model.generate(
+            **inputs, max_new_tokens=ctx["max_new_tokens"]
+        )
+    sync()
     elapsed = time.time() - t0
     new_tokens = output.shape[1] - inputs.input_ids.shape[1]
     return output, elapsed, new_tokens
@@ -93,7 +85,8 @@ class TestQwen3Inference:
         """First run — may include kernel compilation."""
         output, elapsed, new_tokens = run_inference(ctx)
         print(
-            f"\n  First: {elapsed:.2f}s, {new_tokens} tokens, {new_tokens / elapsed:.2f} tok/s"
+            f"\n  First: {elapsed:.2f}s, {new_tokens} tokens, "
+            f"{new_tokens / elapsed:.2f} tok/s"
         )
         assert new_tokens > 0, "No tokens generated on first run"
 
@@ -101,14 +94,16 @@ class TestQwen3Inference:
         """Second run — kernel cache warm."""
         output, elapsed, new_tokens = run_inference(ctx)
         print(
-            f"\n  Second: {elapsed:.2f}s, {new_tokens} tokens, {new_tokens / elapsed:.2f} tok/s"
+            f"\n  Second: {elapsed:.2f}s, {new_tokens} tokens, "
+            f"{new_tokens / elapsed:.2f} tok/s"
         )
         assert new_tokens > 0
 
     def test_third_inference(self, ctx):
         output, elapsed, new_tokens = run_inference(ctx)
         print(
-            f"\n  Third: {elapsed:.2f}s, {new_tokens} tokens, {new_tokens / elapsed:.2f} tok/s"
+            f"\n  Third: {elapsed:.2f}s, {new_tokens} tokens, "
+            f"{new_tokens / elapsed:.2f} tok/s"
         )
         assert new_tokens > 0
 
@@ -116,10 +111,12 @@ class TestQwen3Inference:
         """Fourth run — verify non-empty decoded text."""
         output, elapsed, new_tokens = run_inference(ctx)
         print(
-            f"\n  Fourth: {elapsed:.2f}s, {new_tokens} tokens, {new_tokens / elapsed:.2f} tok/s"
+            f"\n  Fourth: {elapsed:.2f}s, {new_tokens} tokens, "
+            f"{new_tokens / elapsed:.2f} tok/s"
         )
         decoded = ctx["tokenizer"].decode(
-            output[0][ctx["inputs"].input_ids.shape[1] :], skip_special_tokens=True
+            output[0][ctx["inputs"].input_ids.shape[1]:],
+            skip_special_tokens=True,
         )
         print(f"\nGenerated output:\n{decoded}")
         assert new_tokens > 0
