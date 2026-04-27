@@ -105,6 +105,10 @@ _EXCLUDED_OPS = {
     # limit on large vocab (e.g. Qwen3 151k). Use Python decomposition instead.
     "_log_softmax",
     "_log_softmax_backward_data",
+    # mm / mm.out - dispatched by C++ wrapper (FlagosMinimal.cpp) which reads
+    # backends.conf at load time to route to flaggems or cuda per-op.
+    "mm",
+    "mm.out",
 }
 
 
@@ -224,7 +228,7 @@ def _register_composite_ops():
         )
         return torch.slice_scatter(grad_input, grad_output, dim, start, end, step)
 
-    lib.impl("slice_backward", slice_backward_impl, "PrivateUse1")
+    # lib.impl("slice_backward", slice_backward_impl, "PrivateUse1")
 
     # log_softmax: decompose into softmax + log to avoid FlagGems Triton kernel
     # that exceeds MACA's 4KB/thread private memory on large vocab dimensions.

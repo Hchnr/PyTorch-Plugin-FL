@@ -6,7 +6,10 @@ file(GLOB_RECURSE SOURCE_FILES
 
 add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})
 
-target_link_libraries(${LIBRARY_NAME} PRIVATE torch_cpu_library flagos ${CUDA_RUNTIME_LIB})
+target_compile_definitions(${LIBRARY_NAME} PRIVATE
+    FLAGOS_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
+)
+target_link_libraries(${LIBRARY_NAME} PRIVATE torch_cpu_library flagos ${CUDA_RUNTIME_LIB} FlagGems::operators)
 target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS ${LIBRARY_NAME}

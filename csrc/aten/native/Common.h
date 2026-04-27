@@ -11,7 +11,22 @@
 
 #include <accelerator/include/flagos.h>
 
+#include <string>
+
 namespace at::native::flagos {
+
+// Backend selector for unified op wrappers.
+// Determines which physical backend impl() dispatches to.
+enum class FlagosDevice { CUDA, FlagOS, NPU, MUSA };
+
+// Returns the backend for a given op name, loaded once from config file at startup.
+// Config file path: $FLAGOS_BACKEND_CONFIG or torch_fl/backends.conf
+// Format: "op_name = backend"  (backend: "flagos" | "cuda")
+// Default when op is not listed: FlagOS.
+FlagosDevice get_backend_for_op(const std::string& op_name);
+
+// Log dispatch decision if FLAGOS_LOG_DISPATCH=1.
+void log_dispatch(const std::string& op_name, FlagosDevice backend);
 
 // Memory guard to ensure proper synchronization when accessing device memory
 class MemoryGuard {

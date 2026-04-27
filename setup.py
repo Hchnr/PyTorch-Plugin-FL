@@ -106,6 +106,11 @@ def build_deps():
 
     cmake_args.append(f"-DACCELERATOR={ACCELERATOR}")
 
+    # FlagGems C++ library path (optional, enables low-overhead C++ dispatch)
+    flaggems_dir = os.environ.get("FLAGGEMS_DIR")
+    if flaggems_dir:
+        cmake_args.append(f"-DFlagGems_DIR={flaggems_dir}")
+
     if ACCELERATOR == "maca":
         # Muxi MACA SDK: no nvcc needed. CMakeLists.txt pre-creates
         # torch::cudart to skip PyTorch's cuda.cmake entirely.

@@ -5,6 +5,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 #include "native/Minimal.h"
+#include "native/mm.h"
 
 #include <ATen/native/CPUFallback.h>
 #include <ATen/native/DispatchStub.h>
@@ -140,6 +141,25 @@ void wrapper_record_stream(at::Tensor& self, at::Stream s) {
   // so there is no need to track stream usage for memory management.
 }
 
+at::Tensor wrapper_mm(const at::Tensor& self, const at::Tensor& mat2) {
+  auto out = at::empty({self.size(0), mat2.size(1)}, self.options());
+  auto backend = at::native::flagos::get_backend_for_op("mm");
+  at::native::flagos::log_dispatch("mm", backend);
+  at::native::flagos::structured_mm_out_flagos op(out, backend);
+  op.meta(self, mat2);
+  op.impl(self, mat2);
+  return out;
+}
+
+at::Tensor& wrapper_mm_out(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
+  auto backend = at::native::flagos::get_backend_for_op("mm.out");
+  at::native::flagos::log_dispatch("mm.out", backend);
+  at::native::flagos::structured_mm_out_flagos op(out, backend);
+  op.meta(self, mat2);
+  op.impl(self, mat2);
+  return out;
+}
+
 } // namespace
 
 // Register basic operators for PrivateUse1 dispatch key
@@ -162,6 +182,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("clone", wrapper_clone);
   m.impl("_to_copy", wrapper__to_copy);
   m.impl("record_stream", wrapper_record_stream);
+  m.impl("mm", wrapper_mm);
+  m.impl("mm.out", wrapper_mm_out);
 }
 
 // Register fallback for all unimplemented operators
