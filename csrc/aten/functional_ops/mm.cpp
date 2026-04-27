@@ -41,7 +41,6 @@ const at::Tensor& structured_mm_out_flagos::maybe_get_output(int64_t) {
 void structured_mm_out_flagos::impl(const at::Tensor& self, const at::Tensor& mat2) {
   switch (flagos_device_) {
     case FlagosDevice::CUDA: {
-      // Reuse PyTorch's structured_mm_out_cuda impl directly
       struct cuda_impl final : public at::native::structured_mm_out_cuda {
         explicit cuda_impl(at::Tensor& out) : out_(out) {}
         void set_output_raw_strided(

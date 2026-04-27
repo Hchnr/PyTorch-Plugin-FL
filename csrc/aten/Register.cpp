@@ -4,8 +4,13 @@
 // Below is the original copyright:
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "native/Minimal.h"
-#include "native/mm.h"
+#include "factory_ops/empty.h"
+#include "factory_ops/strided_ops.h"
+#include "factory_ops/copy_ops.h"
+#include "factory_ops/set_ops.h"
+#include "factory_ops/contiguous_ops.h"
+#include "factory_ops/fallback.h"
+#include "functional_ops/mm.h"
 
 #include <ATen/native/CPUFallback.h>
 #include <ATen/native/DispatchStub.h>
@@ -24,12 +29,7 @@ at::Tensor wrapper_empty_memory_format(
     std::optional<bool> pin_memory_opt,
     std::optional<c10::MemoryFormat> memory_format_opt) {
   return at::native::flagos::empty_memory_format(
-      size,
-      dtype_opt,
-      layout_opt,
-      device_opt,
-      pin_memory_opt,
-      memory_format_opt);
+      size, dtype_opt, layout_opt, device_opt, pin_memory_opt, memory_format_opt);
 }
 
 at::Tensor wrapper_empty_strided(
@@ -222,6 +222,5 @@ TORCH_LIBRARY_IMPL(aten, AutogradPrivateUse1, m) {
     return self.clone(memory_format);
   });
 }
-
 
 } // namespace at::flagos
