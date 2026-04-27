@@ -19,19 +19,46 @@ model = AutoModelForCausalLM.from_pretrained(MODEL_PATH)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 inputs = tokenizer("hello world", return_tensors="pt")
 
-collector = AtenOpCollector()
+# Create separate collectors for inference and training
+inference_collector = AtenOpCollector()
+training_collector = AtenOpCollector()
 
 # --- inference ---
-with collector:
+print("=== Running inference ===")
+with inference_collector:
     with torch.no_grad():
         out = model(**inputs)
 
 # --- training (forward + backward) ---
+print("=== Running training ===")
 model.train()
-with collector:
+with training_collector:
     loss = model(**inputs, labels=inputs["input_ids"]).loss
     loss.backward()
 
-# 输出结果
-for op, count in sorted(collector.ops.items()):
+# Calculate incremental ops in training (not present in inference)
+inference_ops = set(inference_collector.ops.keys())
+training_ops = set(training_collector.ops.keys())
+incremental_ops = training_ops - inference_ops
+
+# Output results
+print("\n=== Inference Operators ===")
+for op, count in sorted(inference_collector.ops.items()):
     print(f"{op:60s} {count}")
+
+print("\n=== All Training Operators ===")
+for op, count in sorted(training_collector.ops.items()):
+    print(f"{op:60s} {count}")
+
+print("\n=== Incremental Training Operators (not in inference) ===")
+if incremental_ops:
+    for op in sorted(incremental_ops):
+        print(f"{op:60s} {training_collector.ops[op]}")
+else:
+    print("No incremental operators found")
+
+# Summary
+print(f"\n=== Summary ===")
+print(f"Inference operators: {len(inference_collector.ops)}")
+print(f"Training operators: {len(training_collector.ops)}")
+print(f"Incremental operators: {len(incremental_ops)}")
