@@ -12,6 +12,8 @@
 #include "factory_ops/fallback.h"
 #include "functional_ops/mm.h"
 #include "functional_ops/bmm.h"
+#include "functional_ops/cat_stub.h"
+#include "functional_ops/embedding_stub.h"
 
 #include <ATen/native/CPUFallback.h>
 
@@ -171,6 +173,17 @@ at::Tensor& wrapper_bmm_out(const at::Tensor& self, const at::Tensor& mat2, at::
   return out;
 }
 
+at::Tensor wrapper_cat(const at::ITensorListRef& tensors, int64_t dim) {
+  return at::native::flagos::cat_stub(tensors, dim);
+}
+
+at::Tensor wrapper_embedding(
+    const at::Tensor& weight, const at::Tensor& indices,
+    c10::SymInt padding_idx, bool scale_grad_by_freq, bool sparse) {
+  return at::native::flagos::embedding_stub(
+      weight, indices, padding_idx.expect_int(), scale_grad_by_freq, sparse);
+}
+
 } // namespace
 
 // Register basic operators for PrivateUse1 dispatch key
@@ -197,6 +210,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("mm.out", wrapper_mm_out);
   m.impl("bmm", wrapper_bmm);
   m.impl("bmm.out", wrapper_bmm_out);
+  m.impl("cat", wrapper_cat);
+  m.impl("embedding", wrapper_embedding);
 }
 
 // Register fallback for all unimplemented operators

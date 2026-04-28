@@ -105,12 +105,14 @@ _EXCLUDED_OPS = {
     # limit on large vocab (e.g. Qwen3 151k). Use Python decomposition instead.
     "_log_softmax",
     "_log_softmax_backward_data",
-    # mm / mm.out - dispatched by C++ wrapper (FlagosMinimal.cpp) which reads
-    # backends.conf at load time to route to flaggems or cuda per-op.
+    # Ops dispatched by C++ stub (DispatchStub) which reads backends.conf
+    # at load time to route to flaggems or cuda per-op.
     "mm",
     "mm.out",
     "bmm",
     "bmm.out",
+    "cat",
+    "embedding",
 }
 
 

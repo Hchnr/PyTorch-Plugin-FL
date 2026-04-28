@@ -49,17 +49,17 @@ class FlagosDispatchStub {
   }
 
   template <typename... Args>
-  void operator()(Args&&... args) const {
-    dispatch_as(stub_name_, std::forward<Args>(args)...);
+  auto operator()(Args&&... args) const {
+    return dispatch_as(stub_name_, std::forward<Args>(args)...);
   }
 
   template <typename... Args>
-  void dispatch_as(const std::string& op_name, Args&&... args) const {
+  auto dispatch_as(const std::string& op_name, Args&&... args) const {
     auto backend = get_backend_for_op(op_name);
     log_dispatch(op_name, backend);
     auto fn = get_fn(backend);
     TORCH_CHECK(fn, op_name, ": backend not registered");
-    fn(std::forward<Args>(args)...);
+    return fn(std::forward<Args>(args)...);
   }
 
  private:
