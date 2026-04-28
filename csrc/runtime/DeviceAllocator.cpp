@@ -4,11 +4,11 @@
 // Below is the original copyright:
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "FlagosDeviceAllocator.h"
+#include "DeviceAllocator.h"
 
 namespace c10::flagos {
 
-static FlagosDeviceAllocator global_flagos_alloc;
+static DeviceAllocator global_flagos_alloc;
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_flagos_alloc);
 
 } // namespace c10::flagos

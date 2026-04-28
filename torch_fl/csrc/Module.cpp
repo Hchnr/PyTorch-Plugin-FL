@@ -16,7 +16,7 @@
 #include <torch/csrc/utils/python_numbers.h>
 #include <torch/csrc/autograd/python_variable.h>
 
-#include <runtime/FlagosFunctions.h>
+#include <runtime/Functions.h>
 #include <include/Macros.h>
 
 namespace {
