@@ -15,14 +15,14 @@
 #include <cuda_runtime.h>
 #include <accelerator/include/flagos.h>
 
-#include "FlagosGenerator.h"
-#include "FlagosHostAllocator.h"
+#include "Generator.h"
+#include "HostAllocator.h"
 
 namespace c10::flagos {
 
-struct FlagosHooksInterface : public at::PrivateUse1HooksInterface {
-  FlagosHooksInterface() {};
-  ~FlagosHooksInterface() override = default;
+struct HooksInterface : public at::PrivateUse1HooksInterface {
+  HooksInterface() {};
+  ~HooksInterface() override = default;
 
   // Required by dist.barrier() and other distributed operations
   bool isAvailable() const override {
@@ -36,7 +36,7 @@ struct FlagosHooksInterface : public at::PrivateUse1HooksInterface {
   }
 
   at::Allocator* getPinnedMemoryAllocator() const override {
-    return getFlagosHostAllocator();
+    return getHostAllocator();
   }
 
   bool isPinnedPtr(const void* data) const override {
@@ -66,11 +66,11 @@ struct FlagosHooksInterface : public at::PrivateUse1HooksInterface {
 
   const at::Generator& getDefaultGenerator(
       c10::DeviceIndex device_index) const override {
-    return getDefaultFlagosGenerator(device_index);
+    return c10::flagos::getDefaultGenerator(device_index);
   }
 
   at::Generator getNewGenerator(c10::DeviceIndex device_index) const override {
-    return at::make_generator<FlagosGeneratorImpl>(device_index);
+    return at::make_generator<GeneratorImpl>(device_index);
   }
 
   // Required by FSDP for storage resize (parameter sharding)

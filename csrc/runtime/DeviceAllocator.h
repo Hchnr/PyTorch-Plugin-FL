@@ -15,8 +15,8 @@
 
 namespace c10::flagos {
 
-struct FlagosDeviceAllocator final : at::Allocator {
-  FlagosDeviceAllocator() = default;
+struct DeviceAllocator final : at::Allocator {
+  DeviceAllocator() = default;
 
   static void ReportAndDelete(void* ptr) {
     if (!ptr) {

@@ -13,11 +13,11 @@
 
 namespace c10::flagos {
 
-struct FlagosGuardImpl final : public c10::impl::DeviceGuardImplInterface {
+struct GuardImpl final : public c10::impl::DeviceGuardImplInterface {
   static constexpr c10::DeviceType static_type = c10::DeviceType::PrivateUse1;
 
-  FlagosGuardImpl() = default;
-  explicit FlagosGuardImpl(c10::DeviceType t) {
+  GuardImpl() = default;
+  explicit GuardImpl(c10::DeviceType t) {
     TORCH_INTERNAL_ASSERT(t == c10::DeviceType::PrivateUse1);
   }
 

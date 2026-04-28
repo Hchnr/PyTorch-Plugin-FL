@@ -13,8 +13,8 @@ namespace c10::flagos {
 
 namespace {
 
-struct FlagosHostAllocator final : c10::Allocator {
-  FlagosHostAllocator() = default;
+struct HostAllocator final : c10::Allocator {
+  HostAllocator() = default;
 
   static void ReportAndDelete(void* ptr) {
     if (ptr) {
@@ -39,12 +39,12 @@ struct FlagosHostAllocator final : c10::Allocator {
   }
 };
 
-static FlagosHostAllocator flagos_host_alloc;
+static HostAllocator host_alloc;
 
 } // namespace
 
-c10::Allocator* getFlagosHostAllocator() {
-  return &flagos_host_alloc;
+c10::Allocator* getHostAllocator() {
+  return &host_alloc;
 }
 
 } // namespace c10::flagos
