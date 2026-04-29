@@ -36,8 +36,8 @@ def cuda_ref():
     return weight, indices, F.embedding(indices, weight)
 
 
-def _run_embedding_subprocess(extra_env: dict) -> str:
-    """Run a minimal embedding call in a subprocess."""
+def _run_embedding_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
+    """Run a minimal embedding call in a subprocess and return the result."""
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -52,7 +52,11 @@ def _run_embedding_subprocess(extra_env: dict) -> str:
         capture_output=True,
         text=True,
     )
-    return result.stderr
+    if check:
+        assert result.returncode == 0, (
+            f"Subprocess failed (exit {result.returncode}):\n{result.stderr}"
+        )
+    return result
 
 
 class TestEmbeddingDispatch:
@@ -147,21 +151,21 @@ class TestEmbeddingDispatchLog:
 
     def test_dispatch_log_flaggems_default(self):
         """Default routes embedding to flaggems."""
-        stderr = _run_embedding_subprocess(
+        result = _run_embedding_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1"}
         )
         assert (
             "[flagos dispatch] embedding -> flaggems"
-            in stderr
-        ), f"Expected flaggems log, got:\n{stderr}"
+            in result.stderr
+        ), f"Expected flaggems log, got:\n{result.stderr}"
 
     def test_dispatch_log_cuda_override(self):
         """FLAGOS_OP_embedding=cuda overrides to cuda."""
-        stderr = _run_embedding_subprocess({
+        result = _run_embedding_subprocess({
             "FLAGOS_LOG_DISPATCH": "1",
             "FLAGOS_OP_embedding": "cuda",
         })
         assert (
             "[flagos dispatch] embedding -> cuda"
-            in stderr
-        ), f"Expected cuda log, got:\n{stderr}"
+            in result.stderr
+        ), f"Expected cuda log, got:\n{result.stderr}"

@@ -33,8 +33,8 @@ def cuda_ref():
     return a, b, torch.mm(a, b)
 
 
-def _run_mm_subprocess(extra_env: dict, use_out: bool = False) -> str:
-    """Run a minimal mm call in a subprocess and return its stderr."""
+def _run_mm_subprocess(extra_env: dict, use_out: bool = False, check: bool = True) -> subprocess.CompletedProcess:
+    """Run a minimal mm call in a subprocess and return the result."""
     env = os.environ.copy()
     env.update(extra_env)
     if use_out:
@@ -58,7 +58,11 @@ def _run_mm_subprocess(extra_env: dict, use_out: bool = False) -> str:
         capture_output=True,
         text=True,
     )
-    return result.stderr
+    if check:
+        assert result.returncode == 0, (
+            f"Subprocess failed (exit {result.returncode}):\n{result.stderr}"
+        )
+    return result
 
 
 class TestMmDispatch:
@@ -118,35 +122,35 @@ class TestMmDispatchLog:
 
     def test_dispatch_log_flaggems_default(self):
         """Default config routes mm to flaggems."""
-        stderr = _run_mm_subprocess({"FLAGOS_LOG_DISPATCH": "1"})
-        assert "[flagos dispatch] mm -> flaggems" in stderr, (
-            f"Expected flaggems dispatch log, got:\n{stderr}"
+        result = _run_mm_subprocess({"FLAGOS_LOG_DISPATCH": "1"})
+        assert "[flagos dispatch] mm -> flaggems" in result.stderr, (
+            f"Expected flaggems dispatch log, got:\n{result.stderr}"
         )
 
     def test_dispatch_log_cuda_override(self):
         """FLAGOS_OP_mm=cuda overrides to cuda backend."""
-        stderr = _run_mm_subprocess(
+        result = _run_mm_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mm": "cuda"}
         )
-        assert "[flagos dispatch] mm -> cuda" in stderr, (
-            f"Expected cuda dispatch log, got:\n{stderr}"
+        assert "[flagos dispatch] mm -> cuda" in result.stderr, (
+            f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
 
     def test_dispatch_log_mm_out_flaggems_default(self):
         """Default config routes mm.out to flaggems."""
-        stderr = _run_mm_subprocess(
+        result = _run_mm_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1"}, use_out=True
         )
-        assert "[flagos dispatch] mm.out -> flaggems" in stderr, (
-            f"Expected flaggems dispatch log, got:\n{stderr}"
+        assert "[flagos dispatch] mm.out -> flaggems" in result.stderr, (
+            f"Expected flaggems dispatch log, got:\n{result.stderr}"
         )
 
     def test_dispatch_log_mm_out_cuda_override(self):
         """FLAGOS_OP_mm__out=cuda overrides mm.out to cuda."""
-        stderr = _run_mm_subprocess(
+        result = _run_mm_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mm__out": "cuda"},
             use_out=True,
         )
-        assert "[flagos dispatch] mm.out -> cuda" in stderr, (
-            f"Expected cuda dispatch log, got:\n{stderr}"
+        assert "[flagos dispatch] mm.out -> cuda" in result.stderr, (
+            f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
