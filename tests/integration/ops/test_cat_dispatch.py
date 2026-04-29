@@ -33,8 +33,8 @@ def cuda_ref():
     return a, b, torch.cat([a, b], dim=0)
 
 
-def _run_cat_subprocess(extra_env: dict) -> str:
-    """Run a minimal cat call in a subprocess and return its stderr."""
+def _run_cat_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
+    """Run a minimal cat call in a subprocess and return the result."""
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -49,7 +49,11 @@ def _run_cat_subprocess(extra_env: dict) -> str:
         capture_output=True,
         text=True,
     )
-    return result.stderr
+    if check:
+        assert result.returncode == 0, (
+            f"Subprocess failed (exit {result.returncode}):\n{result.stderr}"
+        )
+    return result
 
 
 class TestCatDispatch:
@@ -127,16 +131,16 @@ class TestCatDispatchLog:
 
     def test_dispatch_log_flaggems_default(self):
         """Default config routes cat to flaggems."""
-        stderr = _run_cat_subprocess({"FLAGOS_LOG_DISPATCH": "1"})
-        assert "[flagos dispatch] cat -> flaggems" in stderr, (
-            f"Expected flaggems dispatch log, got:\n{stderr}"
+        result = _run_cat_subprocess({"FLAGOS_LOG_DISPATCH": "1"})
+        assert "[flagos dispatch] cat -> flaggems" in result.stderr, (
+            f"Expected flaggems dispatch log, got:\n{result.stderr}"
         )
 
     def test_dispatch_log_cuda_override(self):
         """FLAGOS_OP_cat=cuda overrides to cuda backend."""
-        stderr = _run_cat_subprocess(
-            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_cat": "cuda"}
+        result = _run_cat_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_cat": "cuda"},
         )
-        assert "[flagos dispatch] cat -> cuda" in stderr, (
-            f"Expected cuda dispatch log, got:\n{stderr}"
+        assert "[flagos dispatch] cat -> cuda" in result.stderr, (
+            f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
