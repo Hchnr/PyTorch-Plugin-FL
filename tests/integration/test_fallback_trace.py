@@ -13,45 +13,27 @@ import torch
 import torch_fl
 
 
-# Ops registered in C++ (Register.cpp) that won't appear in get_registered_ops()
-_CPP_REGISTERED_OPS = {
-    "aten::empty.memory_format",
-    "aten::empty_strided",
-    "aten::as_strided",
-    "aten::_reshape_alias",
-    "aten::resize_",
-    "aten::_copy_from",
-    "aten::_copy_from_and_resize",
-    "aten::set_.source_Storage_storage_offset",
-    "aten::set_.source_Storage",
-    "aten::copy_",
-    "aten::_to_copy",
-    "aten::contiguous",
-    "aten::clone",
-    "aten::mm",
-    "aten::mm.out",
-    "aten::bmm",
-    "aten::bmm.out",
-    "aten::cat",
-    "aten::embedding",
-    "aten::_log_softmax",
-    "aten::_log_softmax_backward_data",
-}
-
-
-def _build_registered_set():
-    flaggems = {f"aten::{op}" for op in torch_fl.get_registered_ops()}
-    return flaggems | _CPP_REGISTERED_OPS
+def _has_privateuse1_kernel(op_name: str) -> bool:
+    """Check if an op has a dedicated PrivateUse1 kernel (not just the catch-all fallback)."""
+    try:
+        return torch._C._dispatch_has_kernel_for_dispatch_key(op_name, "PrivateUse1")
+    except RuntimeError:
+        return False
 
 
 class FallbackTracer(torch.utils._python_dispatch.TorchDispatchMode):
     """Intercept all aten dispatches and classify as native vs fallback."""
 
-    def __init__(self, registered_ops):
+    def __init__(self):
         super().__init__()
-        self.registered_ops = registered_ops
+        self._cache: dict[str, bool] = {}
         self.fallback_ops = defaultdict(int)
         self.native_ops = defaultdict(int)
+
+    def _is_native(self, op_name: str) -> bool:
+        if op_name not in self._cache:
+            self._cache[op_name] = _has_privateuse1_kernel(op_name)
+        return self._cache[op_name]
 
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         kwargs = kwargs or {}
@@ -67,7 +49,7 @@ class FallbackTracer(torch.utils._python_dispatch.TorchDispatchMode):
                 break
 
         if has_flagos:
-            if op_name in self.registered_ops:
+            if self._is_native(op_name):
                 self.native_ops[op_name] += 1
             else:
                 self.fallback_ops[op_name] += 1
@@ -146,8 +128,7 @@ def model_ctx(request):
 
 def test_trace_fallback_ops(model_ctx):
     """Run one inference pass and report which ops hit CPU fallback."""
-    registered = _build_registered_set()
-    tracer = FallbackTracer(registered)
+    tracer = FallbackTracer()
 
     model = model_ctx["model"]
     inputs = model_ctx["inputs"]
