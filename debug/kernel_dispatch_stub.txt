@@ -1,0 +1,517 @@
+整体的分层是：Dispatcher（必有）→ 结构化算子（可选）→ Stub（可选）→ Kernel（必有）
+1. CUDA torch.threshold
+完整的、常规的例子：
+- Element-Wise 算子
+- Stub 机制用于CPU拓展指令集（AVX2、AVX512）的分发
+代码位置：aten/src/ATen/native
+1.1 算子注册
+CPU注册：build/aten/src/ATen/RegisterCPU_1.cpp
+TORCH_LIBRARY_IMPL(aten, CPU, m) {
+    m.impl("threshold", TORCH_FN(wrapper_CPU_threshold));
+    m.impl("threshold.out", TORCH_FN(wrapper_CPU_threshold_out_out));
+    m.impl("threshold_", TORCH_FN(wrapper_CPU_threshold_));
+}
+CUDA注册：build/aten/src/ATen/RegisterCUDA_0.cpp
+TORCH_LIBRARY_IMPL(aten, CUDA, m) {
+    m.impl("threshold", TORCH_FN(wrapper_CUDA_threshold));
+    m.impl("threshold.out", TORCH_FN(wrapper_CUDA_threshold_out_out));
+    m.impl("threshold_", TORCH_FN(wrapper_CUDA_threshold_));
+}
+1.2 Wrapper
+CPU Wrapper实现：build/aten/src/ATen/RegisterCPU_1.cpp
+at::Tensor wrapper_CPU_threshold(const at::Tensor & self, const at::Scalar & threshold, const at::Scalar & value) {
+    structured_threshold_out_functional op;
+    op.meta(self, threshold, value);
+    op.impl(self, threshold, value, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+CUDA Wrapper实现：build/aten/src/ATen/RegisterCUDA_0.cpp
+at::Tensor wrapper_CUDA_threshold(const at::Tensor & self, const at::Scalar & threshold, const at::Scalar & value) {
+  // No device check
+    structured_threshold_out_functional op;
+    op.meta(self, threshold, value);
+    op.impl(self, threshold, value, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+- 实现基本一致，计算部分完全一致，不一致在设备相关的逻辑上。
+- CPU 和 CUDA 对于struct structured_threshold_out_functional 会生成两份代码
+- 区别在set_output_strided 里的 DeviceGuard
+  - set_output_strided() 被 TensorIteratorBase::build() -> TensorIteratorBase::allocate_or_resize_outputs() 调用
+CPU 版本（无 device guard）：
+// RegisterCPU_1.cpp
+struct structured_threshold_out_functional : public at::native::structured_threshold_out {
+    void set_output_strided(...) override {
+        outputs_[output_idx] = create_out(sizes, strides, options);
+        // 直接创建输出，无设备检查
+    }
+    std::array<Tensor, 1> outputs_;
+    // 没有 guard_ 成员
+};
+CUDA 版本（有 OptionalCUDAGuard）：
+// RegisterCUDA_0.cpp
+struct structured_threshold_out_functional : public at::native::structured_threshold_out {
+    void set_output_strided(...) override {
+        auto current_device = guard_.current_device();
+        if (C10_UNLIKELY(current_device.has_value())) {
+            TORCH_INTERNAL_ASSERT(*current_device == options.device(),
+                "structured kernels don't support multi-device outputs");
+        } else {
+            guard_.reset_device(options.device());  // 设置 CUDA device
+        }
+        outputs_[output_idx] = create_out(sizes, strides, options);
+    }
+    std::array<Tensor, 1> outputs_;
+    c10::cuda::OptionalCUDAGuard guard_;  // ← CPU 版本没有这个
+};
+1.3 Stub 声明&定义
+（Activation.h:50）
+// 定义函数指针类型
+using threshold_fn = void (*)(TensorIteratorBase&, const c10::Scalar&, const c10::Scalar&);
+
+// 声明 stub
+DECLARE_DISPATCH(threshold_fn, threshold_stub)
+（Activation.cpp:254）
+// 定义全局 stub 对象
+DEFINE_DISPATCH(threshold_stub);
+展开后等价于：
+DispatchStub<threshold_fn, struct threshold_stub_DECLARE_DISPATCH_type> threshold_stub;
+DispatchStubImpl 的状态：
+threshold_stub.impl = {
+  // CPU 指令集（运行时选择，首次调用后缓存）
+  cpu_dispatch_ptr: &threshold_kernel_avx2,  // 假设检测到 AVX2
+  // GPU 设备（编译时注册）
+  cuda_dispatch_ptr: &threshold_kernel_cuda,
+  hip_dispatch_ptr: nullptr,
+  mps_dispatch_ptr: nullptr,
+  xpu_dispatch_ptr: nullptr,
+  // ...
+};
+多版本编译，CPU 实现会被编译成多个目标文件：
+build/aten/src/ATen/native/cpu/
+├── Activation.o              (DEFAULT 版本)
+├── Activation.avx2.o         (AVX2 版本，-mavx2)
+└── Activation.avx512.o       (AVX512 版本，-mavx512f)
+链接时，三个版本的 threshold_kernel 都会通过 REGISTER_DISPATCH 注册到 threshold_stub：
+- DEFAULT 版本 → threshold_stub.impl.DEFAULT
+- AVX2 版本 → threshold_stub.impl.AVX2
+- AVX512 版本 → threshold_stub.impl.AVX512
+运行时根据 CPU 能力选择最优版本。
+1.4 结构化算子调用 Stub
+（Activation.cpp:688）
+TORCH_IMPL_FUNC(threshold_out)(
+    const Tensor& self, 
+    const Scalar& threshold, 
+    const Scalar& value, 
+    const Tensor& result) {
+  // 调用 stub，传入 device_type()
+  threshold_stub(device_type(), *this, threshold, value);
+  //             ^^^^^^^^^^^^
+  //             从 TensorIterator 获取设备类型（kCPU/kCUDA）
+}
+TORCH_IMPL_FUNC宏，定义算子wrapper中op.impl的实现
+torch/include/ATen/TensorMeta.h
+#define TORCH_IMPL_FUNC(name) void structured_##name::impl
+参考：生成代码中wrapper对op.impl() 的调用
+build/aten/src/ATen/RegisterCUDA_0.cpp
+[图片]
+参考：目前支持的设备类型
+aten/src/ATen/native/Activation.cpp
+enum class DeviceType : int8_t {
+  CPU = 0,
+  CUDA = 1, // CUDA.
+  MKLDNN = 2, // Reserved for explicit MKLDNN
+  OPENGL = 3, // OpenGL
+  OPENCL = 4, // OpenCL
+  IDEEP = 5, // IDEEP.
+  HIP = 6, // AMD HIP
+  FPGA = 7, // FPGA
+  MAIA = 8, // ONNX Runtime / Microsoft
+  XLA = 9, // XLA / TPU
+  Vulkan = 10, // Vulkan
+  Metal = 11, // Metal
+  XPU = 12, // XPU
+  MPS = 13, // MPS
+  Meta = 14, // Meta (tensors with no data)
+  HPU = 15, // HPU / HABANA
+  VE = 16, // SX-Aurora / NEC
+  Lazy = 17, // Lazy Tensors
+  IPU = 18, // Graphcore IPU
+  MTIA = 19, // Meta training and inference devices
+  PrivateUse1 = 20, // PrivateUse1 device
+  // NB: If you add more devices:
+  //  - Change the implementations of DeviceTypeName and isValidDeviceType
+  //    in c10/core/DeviceType.cpp
+  //  - Change the number below
+  COMPILE_TIME_MAX_DEVICE_TYPES = 21,
+};
+1.5 CPU Kernel 实现&注册
+实现（cpu/Activation.cpp:153）
+void threshold_kernel(
+    TensorIteratorBase& iter,
+    const Scalar& threshold_scalar,
+    const Scalar& value_scalar) {
+          AT_DISPATCH_ALL_TYPES(iter.dtype(), "threshold_cpu", [&] {
+              using Vec = Vectorized<scalar_t>;
+                scalar_t threshold = threshold_scalar.to<scalar_t>();
+                Vec threshold_v = Vec(threshold);
+                scalar_t value = value_scalar.to<scalar_t>();
+                Vec value_v = Vec(value);    
+                cpu_kernel_vec(
+                    iter,
+                    // 标量路径
+                    [&](scalar_t x, scalar_t other) -> scalar_t {
+                      return x <= threshold ? value : other;
+                    },
+                    // 向量化路径（AVX2/AVX512）
+                    [&](Vec x, Vec other) -> Vec {
+                      return Vec::blendv(other, value_v, x <= threshold_v);
+                    }
+                );
+            });
+}
+注册（cpu/Activation.cpp:1316）
+REGISTER_DISPATCH(threshold_stub, &threshold_kernel)
+REGISTER_DISPATCH 宏定义：
+torch/include/ATen/native/DispatchStub.h
+#if defined(__CUDACC__)
+#define REGISTER_DISPATCH(name, fn) REGISTER_CUDA_DISPATCH(name, fn)
+#elif defined(__HIPCC__)
+// TODO: cut this over to HIP dispatch once we stop pretending that CUDA
+// is HIP in the PyTorch HIPify build.
+#define REGISTER_DISPATCH(name, fn) REGISTER_CUDA_DISPATCH(name, fn)
+// #define REGISTER_DISPATCH(name, fn) REGISTER_HIP_DISPATCH(name, fn)
+#elif defined(__OBJC__) && defined(USE_MPS)
+// NB: this macro must be used from a 'mm' file in order to dispatch a MPS kernel
+#define REGISTER_DISPATCH(name, fn) REGISTER_MPS_DISPATCH(name, fn)
+#elif defined(CPU_CAPABILITY)
+// REGISTER_DISPATCH now dispatches an AVX512 kernel to nullptr but registers other dispatches.
+// ALSO_REGISTER_AVX512_DISPATCH should be used for ensuring AVX512 dispatch, among others.
+// ALSO_REGISTER_SVE256_DISPATCH should be used for ensuring SVE256 dispatch, among others.
+#ifdef CPU_CAPABILITY_AVX512
+#define REGISTER_DISPATCH(name, fn) REGISTER_ARCH_DISPATCH(name, CPU_CAPABILITY, ((void*)(fn) ? nullptr : nullptr))
+#else
+#define REGISTER_DISPATCH(name, fn) REGISTER_ARCH_DISPATCH(name, CPU_CAPABILITY, fn)
+#endif
+REGISTER_CUDA_DISPATCH 宏定义：
+#define REGISTER_CUDA_DISPATCH(name, fn) \
+  static RegisterCUDADispatch<struct name##_DECLARE_DISPATCH_type> name ## __register(name, fn);
+RegisterCUDADispatch 宏定义：
+template <typename DispatchStub>
+struct RegisterCUDADispatch {
+  RegisterCUDADispatch(DispatchStub &stub, typename DispatchStub::FnPtr value) {
+    stub.set_cuda_dispatch_ptr(value);
+  }
+};
+1.6 CUDA Kernel 实现&注册
+实现（cuda/ActivationThresholdKernel.cu:33）
+static void threshold_kernel_cuda(
+    TensorIteratorBase& iter,
+    const Scalar& threshold,
+    const Scalar& value) {
+  AT_DISPATCH_ALL_TYPES_AND2(
+      at::ScalarType::Half,
+      at::ScalarType::BFloat16,
+      iter.dtype(),
+      "threshold_cuda",
+      [&] {
+        threshold_kernel_impl<scalar_t>(
+            iter, threshold.to<scalar_t>(), value.to<scalar_t>());
+      });
+}
+
+template <typename scalar_t>
+void threshold_kernel_impl(
+    TensorIteratorBase& iter,
+    scalar_t threshold,
+    scalar_t value) {
+  gpu_kernel_with_scalars(
+      iter, [=] GPU_LAMBDA(scalar_t x, scalar_t other) -> scalar_t {
+        return x <= threshold ? value : other;
+      });
+}
+注册（cuda/ActivationThresholdKernel.cu:50）
+REGISTER_DISPATCH(threshold_stub, &threshold_kernel_cuda)
+1.7 调用链
+torch.threshold(x, threshold=0.5, value=0.0)
+    ↓
+【Dispatcher 层】CPU/CUDA 分别注册
+    ├─ CPU tensor → wrapper_CPU_threshold()
+    │   (build/aten/src/ATen/RegisterCPU_1.cpp:5201)
+    └─ CUDA tensor → wrapper_CUDA_threshold()
+        (build/aten/src/ATen/RegisterCUDA_0.cpp:22064)
+    ↓
+【结构化算子层】structured_threshold_out_functional
+    op.meta(self, threshold, value);  → TORCH_META_FUNC(threshold)
+    (aten/src/ATen/native/Activation.cpp:86)
+    → build(TensorIteratorConfig()...)
+    → TensorIteratorBase::build()
+    → set_output_raw_strided()  ← 虚函数，CPU/CUDA 版本不同
+        ├─ CPU: 仅 resize_output()
+        └─ CUDA: guard_.reset_device() + resize_output()
+    
+    op.impl(self, threshold, value, op.outputs_[0]);  → TORCH_IMPL_FUNC(threshold_out)
+    (aten/src/ATen/native/Activation.cpp:688)
+    ↓
+【Stub 层】threshold_stub(device_type(), *this, threshold, value)
+    (aten/src/ATen/native/Activation.h:50 声明)
+    (aten/src/ATen/native/Activation.cpp:254 定义)
+    ↓
+    DispatchStub 根据 device_type() 分发
+    ├─ kCPU → threshold_kernel()
+    │   (aten/src/ATen/native/cpu/Activation.cpp:153)
+    │   (aten/src/ATen/native/cpu/Activation.cpp:1316 注册)
+    │   ↓
+    │   运行时选择：
+    │   ├─ AVX512 版本（-mavx512f）
+    │   ├─ AVX2 版本（-mavx2）
+    │   └─ DEFAULT 版本
+    │   ↓
+    │   cpu_kernel_vec() → 向量化计算
+    │
+    └─ kCUDA → threshold_kernel_cuda()
+        (aten/src/ATen/native/cuda/ActivationThresholdKernel.cu:33)
+        (aten/src/ATen/native/cuda/ActivationThresholdKernel.cu:50 注册)
+        ↓
+        gpu_kernel_with_scalars() → CUDA kernel 启动
+
+2. CUDA torch.matmal
+2.1 算子注册
+CPU 注册：build/aten/src/ATen/RegisterCPU_0.cpp
+TORCH_LIBRARY_IMPL(aten, CPU, m) {
+    m.impl("mm", TORCH_FN(wrapper_CPU_mm));
+    m.impl("mm.out", TORCH_FN(wrapper_CPU_mm_out_out));
+}
+CUDA 注册：build/aten/src/ATen/RegisterCUDA_0.cpp
+TORCH_LIBRARY_IMPL(aten, CUDA, m) {
+    m.impl("mm", TORCH_FN(wrapper_CUDA_mm));
+    m.impl("mm.out", TORCH_FN(wrapper_CUDA_mm_out_out));
+}
+2.2 Wrapper 
+CPU Wrapper 实现：build/aten/src/ATen/RegisterCPU_0.cpp
+at::Tensor wrapper_CPU_mm(const at::Tensor & self, const at::Tensor & mat2) {
+    structured_mm_out_cpu_functional op;
+    op.meta(self, mat2);
+    op.impl(self, mat2, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+CUDA Wrapper 实现：build/aten/src/ATen/RegisterCUDA_0.cpp
+at::Tensor wrapper_CUDA_mm(const at::Tensor & self, const at::Tensor & mat2) {
+    std::optional<Device> common_device = std::nullopt;
+    (void)common_device; // Suppress unused variable warning
+    c10::impl::check_and_update_common_device(common_device, self, "wrapper_CUDA_mm", "self");
+    c10::impl::check_and_update_common_device(common_device, mat2, "wrapper_CUDA_mm", "mat2");
+    structured_mm_out_cuda_functional op;
+    op.meta(self, mat2);
+    op.impl(self, mat2, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+2.3 结构化算子实现
+CPU op.impl()实现： aten/src/ATen/native/LinearAlgebra.cpp
+TORCH_IMPL_FUNC(mm_out_cpu)(const Tensor & self, const Tensor & mat2, const Tensor & result) {
+  {
+    at::NoNamesGuard guard;
+    addmm_impl_cpu_(const_cast<Tensor&>(result), result, self, mat2, 0, 1);
+  }
+}
+addmm_impl_cpu_ 中调用 at::native::cpublas::gemm（再调用Stub）：aten/src/ATen/native/LinearAlgebra.cpp
+at::native::cpublas::gemm(
+    transpose_a ? a.is_conj() ? TransposeType::ConjTranspose : TransposeType::Transpose : TransposeType::NoTranspose,
+    transpose_b ? b.is_conj() ? TransposeType::ConjTranspose : TransposeType::Transpose : TransposeType::NoTranspose,
+    m, n, k,
+    alpha.to<opmath_t>(),
+    a.const_data_ptr<scalar_t>(), lda,
+    b.const_data_ptr<scalar_t>(), ldb,
+    beta.to<opmath_t>(),
+    c.mutable_data_ptr<scalar_t>(), ldc);
+CUDA op.impl()实现：aten/src/ATen/native/cuda/Blas.cpp
+TORCH_IMPL_FUNC(mm_out_cuda)(const Tensor& self, const Tensor& mat2, const Tensor& result) {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+  addmm_out_cuda_impl(const_cast<Tensor&>(result), result, self, mat2, 0, 1);
+}
+addmm_out_cuda_impl 调用cuBLAS：aten/src/ATen/native/cuda/Blas.cpp
+cublasCommonArgs args(mat1, mat2, result);
+lt_success = launchGemmAndBiasCublasLt<scalar_t, float>(args, use_bias_ptr_lt ? std::make_optional(self) : std::nullopt, alpha, activation);
+2.4 CPU Stub
+at::native::cpublas::gemm 实现：torch/include/ATen/native/CPUBlas.h
+template <typename scalar_t>
+void gemm(
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    at::opmath_type<scalar_t> alpha,
+    const scalar_t *a, int64_t lda,
+    const scalar_t *b, int64_t ldb,
+    at::opmath_type<scalar_t> beta,
+    scalar_t *c, int64_t ldc) {
+  internal::normalize_last_dims(transa, transb, m, n, k, &lda, &ldb, &ldc);
+  gemm_stub(
+    kCPU, c10::CppTypeToScalarType<scalar_t>::value,
+    transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+}
+gemm_stub 声明：torch/include/ATen/native/CPUBlas.h
+using gemm_fn = void(*)(
+    at::ScalarType type,
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    const Scalar& alpha,
+    const void *a, int64_t lda,
+    const void *b, int64_t ldb,
+    const Scalar& beta,
+    void *c, int64_t ldc);
+
+DECLARE_DISPATCH(gemm_fn, gemm_stub)
+gemm_stub 注册：aten/src/ATen/native/cpu/BlasKernel.cpp
+REGISTER_DISPATCH(cpublas::gemm_stub, &cpublas::cpublas_gemm_impl)
+2.5 调用链
+```
+torch.matmul(a, b)
+    ↓
+【Dispatcher 层】CompositeImplicitAutograd key
+    wrapper_CompositeImplicitAutograd__matmul()
+    (build/aten/src/ATen/RegisterCompositeImplicitAutograd_0.cpp:6355)
+    ↓
+【算子实现层】at::native::matmul() → _matmul_impl()
+    (aten/src/ATen/native/LinearAlgebra.cpp:2190 → 2010)
+    ↓
+根据维度分解：
+    ├─ 1D × 1D → at::dot()
+    ├─ 2D × 1D → at::mv()
+    ├─ 1D × 2D → at::mm(a.unsqueeze(0), b).squeeze_()
+    ├─ 2D × 2D → at::mm(a, b)          ← 最常见路径
+    └─ ND × MD → at::bmm(a, b)         ← batch 路径
+    ↓
+【Dispatcher 层】CPU/CUDA 分别注册
+    ├─ CPU tensor → wrapper_CPU_mm()
+    │   (build/aten/src/ATen/RegisterCPUEverything.cpp:11734)
+    └─ CUDA tensor → wrapper_CUDA_mm()
+        (build/aten/src/ATen/RegisterCUDAEverything.cpp:16087)
+    ↓
+【结构化算子层】structured_mm_out_cpu/cuda_functional
+    op.meta(self, mat2);  → TORCH_META_FUNC(mm)
+    op.impl(self, mat2, op.outputs_[0]);  → TORCH_IMPL_FUNC(mm_out_cpu/cuda)
+    ↓
+【算子实现层】
+    ├─ CPU: TORCH_IMPL_FUNC(mm_out_cpu)
+    │   (aten/src/ATen/native/LinearAlgebra.cpp:1641)
+    │   → addmm_impl_cpu_(result, result, self, mat2, 0, 1)
+    │   (aten/src/ATen/native/LinearAlgebra.cpp:1400)
+    │   → at::native::cpublas::gemm(...)
+    │   (aten/src/ATen/native/LinearAlgebra.cpp:1542)
+    │   ↓
+    │   【Stub 层】gemm_stub(kCPU, ...)
+    │   (aten/src/ATen/native/CPUBlas.h:55)
+    │   ↓
+    │   【内核实现层】cpublas_gemm_impl()
+    │   (aten/src/ATen/native/cpu/BlasKernel.cpp:478)
+    │   → gemm_core_() → gemm_notrans_/gemm_transa_/...
+    │   (aten/src/ATen/native/cpu/BlasKernel.cpp:443)
+    │   ↓
+    │   运行时选择：
+    │   ├─ AVX512 版本（-mavx512f）
+    │   ├─ AVX2 版本（-mavx2）
+    │   └─ DEFAULT 版本
+    │
+    └─ CUDA: TORCH_IMPL_FUNC(mm_out_cuda)
+        (aten/src/ATen/native/cuda/Blas.cpp:651)
+        → addmm_out_cuda_impl(result, result, self, mat2, 0, 1)
+        (aten/src/ATen/native/cuda/Blas.cpp:339)
+        → at::cuda::blas::gemm<scalar_t>()
+        (aten/src/ATen/native/cuda/Blas.cpp:611)
+        ↓
+        【cuBLAS 层】cublasSgemm/cublasDgemm/cublasGemmEx
+        (aten/src/ATen/cuda/CUDABlas.cpp:1062+)
+        ↓
+        NVIDIA cuBLAS 库
+```
+3. HIP torch.matmal
+mm算子上，HIP几乎完全复用了CUDA的实现。
+- 差异在 addmm_out_cuda_impl 层的部分Check逻辑
+CUDA 代码通过简单的替换（cuda→hip）就能在 AMD 上运行
+AMD 强制对齐了 CUDA 的整个 API 设计：
+- 流（stream）模型一样
+- 内存模型一样
+- kernel 启动语法一样
+- 函数命名、参数、返回值全一样
+NVIDIA GPU 和 AMD GPU 底层架构是同一类：
+- SIMD / SIMT 执行模型
+- grid/block/thread 三级线程
+- 异步流 + 核函数启动。
+算子注册：build/aten/src/ATen_rocm/RegisterCUDA_0.cpp
+TORCH_LIBRARY_IMPL(aten, CUDA, m) {
+    m.impl("mm", TORCH_FN(wrapper_CUDA_mm));
+    m.impl("mm.out", TORCH_FN(wrapper_CUDA_mm_out_out));
+}
+算子Wrapper：build/aten/src/ATen_rocm/RegisterCUDA_0.cpp
+at::Tensor wrapper_CUDA_mm(const at::Tensor & self, const at::Tensor & mat2) {
+    std::optional<Device> common_device = std::nullopt;
+    (void)common_device; // Suppress unused variable warning
+      c10::impl::check_and_update_common_device(common_device, self, "wrapper_CUDA_mm", "self");
+      c10::impl::check_and_update_common_device(common_device, mat2, "wrapper_CUDA_mm", "mat2");
+    structured_mm_out_cuda_functional op;
+    op.meta(self, mat2);
+    op.impl(self, mat2, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+op.impl() 实现是统一的：aten/src/ATen/native/cuda/Blas.cpp
+TORCH_IMPL_FUNC(mm_out_cuda)(const Tensor& self, const Tensor& mat2, const Tensor& result) {
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+  addmm_out_cuda_impl(const_cast<Tensor&>(result), result, self, mat2, 0, 1);
+}
+4. Metal torch.matmal
+算子注册：build/aten/src/ATen_mps/RegisterMPS_0.cpp
+TORCH_LIBRARY_IMPL(aten, MPS, m) {
+    m.impl("mm", TORCH_FN(wrapper_MPS_mm));
+    m.impl("mm.out", TORCH_FN(wrapper_MPS_mm_out_out));
+}
+算子Wrapper：build/aten/src/ATen_mps/RegisterMPS_0.cpp
+at::Tensor wrapper_MPS_mm(const at::Tensor & self, const at::Tensor & mat2) {
+    structured_mm_out_mps_functional op;
+    op.meta(self, mat2);
+    op.impl(self, mat2, op.outputs_[0]);
+    return std::move(op.outputs_[0]);
+}
+结构化算子 op.impl() 实现：aten/src/ATen/native/mps/operations/LinearAlgebra.mm
+TORCH_IMPL_FUNC(mm_out_mps)(const Tensor& self, const Tensor& mat2, const Tensor& result) {
+  mps::mm_out_mps_impl(self, mat2, const_cast<Tensor&>(result));
+}
+mps::mm_out_mps_impl 具体实现有2分支：
+- 使用 MPS
+- 使用更底层的 Metal API
+
+5. PrivateUse1
+Stub 注册宏：aten/src/ATen/native/DispatchStub.h
+#define REGISTER_PRIVATEUSE1_DISPATCH(name, fn) \
+  static RegisterPRIVATEUSE1Dispatch<struct name##_DECLARE_DISPATCH_type> name ## __register(name, fn);
+RegisterPRIVATEUSE1Dispatch 实现：aten/src/ATen/native/DispatchStub.h
+template <typename DispatchStub>
+struct RegisterPRIVATEUSE1Dispatch {
+  RegisterPRIVATEUSE1Dispatch(DispatchStub &stub, typename DispatchStub::FnPtr value) {
+    stub.set_privateuse1_dispatch_ptr(value);
+  }
+};
+OpenReg中有的参考：abs_stub、quantize_tensor_per_tensor_affine_stub、_fused_sdp_choice_stub
+- 注册：test/cpp_extensions/open_registration_extension/torch_openreg/csrc/aten/OpenRegExtra.cpp
+- 实现：test/cpp_extensions/open_registration_extension/torch_openreg/csrc/aten/native/Extra.cpp
+
+6. 总结
+两个分发机制的对比：
+- Dispatch：根据 DispatchKey 选择（算子级）
+- Stub：在算子实现内部，根据 DeviceType 选择具体实现（函数级，仍略高于Kernel）
+分发方式现状：
+- CPU指令集分发：使用 Stub。
+- 设备分发：使用 Dispatch + Stub
+  - 不同设备有不同的算子Wrapper
+  - Stub层收口，CPU不同指令集的、CUDA的实现都会注册到Stub层中
+结论：
+- 从Stub层注册是可行的
+- Wrapper层可能需要改，op.meta() 相关的
+- 不是所有算子（如mm）目前的实现都用了Stub，需要先做这层抽象
+  - 部分Element-Wise的算子如threshold、cumsum等，已有有stub分发设备的实现
+TODO：在mm算子上做stub的抽象，以及PrivateUse1设备上的mm算子通过stub接入
+
+上周TODO：
+- 调研cuda和hip是否可以复用wrapper，加动态dispatcher
+  - 可以复用，需要少量修改
+- Kernel impl 是否可以复用（Gems和厂商算子之间）。
+  - ？
+- Torch 动态选择算子的机制
+  - stub + dispatch

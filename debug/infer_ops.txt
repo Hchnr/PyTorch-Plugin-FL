@@ -1,0 +1,30 @@
+## Factory OPs
+aten.arange.default
+aten.lift_fresh.default
+
+## Functional OPs
+aten._local_scalar_dense.default
+aten._scaled_dot_product_flash_attention_for_cpu.default
+aten._to_copy.default
+aten._unsafe_view.default
+aten.add.Tensor
+aten.alias.default
+aten.all.default
+aten.bmm.default
+aten.cat.default
+aten.cos.default
+aten.embedding.default
+aten.expand.default
+aten.mean.dim
+aten.mm.default
+aten.mul.Tensor
+aten.neg.default
+aten.pow.Tensor_Scalar
+aten.rsqrt.default
+aten.silu.default
+aten.sin.default
+aten.slice.Tensor
+aten.t.default
+aten.transpose.int
+aten.unsqueeze.default
+aten.view.default
