@@ -11,9 +11,9 @@ namespace at::native::flagos {
 
 // Structured mm op for PrivateUse1 (flagos) dispatch key.
 // meta() is inherited from at::meta::structured_mm (PyTorch-generated).
-// impl() dispatches to the backend selected by get_backend_for_op().
-struct structured_mm_out_flagos final : public at::meta::structured_mm {
-  explicit structured_mm_out_flagos(at::Tensor& out) : out_(out) {}
+// impl() dispatches to the backend selected by GetBackendForOp().
+struct StructuredMmOutFlagos final : public at::meta::structured_mm {
+  explicit StructuredMmOutFlagos(at::Tensor& out) : out_(out) {}
 
   void set_output_strided(
       int64_t output_idx,

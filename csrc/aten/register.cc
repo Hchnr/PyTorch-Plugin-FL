@@ -23,7 +23,7 @@ namespace at::flagos {
 
 namespace {
 
-at::Tensor wrapper_empty_memory_format(
+at::Tensor WrapperEmptyMemoryFormat(
     c10::IntArrayRef size,
     std::optional<c10::ScalarType> dtype_opt,
     std::optional<c10::Layout> layout_opt,
@@ -34,7 +34,7 @@ at::Tensor wrapper_empty_memory_format(
       size, dtype_opt, layout_opt, device_opt, pin_memory_opt, memory_format_opt);
 }
 
-at::Tensor wrapper_empty_strided(
+at::Tensor WrapperEmptyStrided(
     c10::IntArrayRef size,
     c10::IntArrayRef stride,
     std::optional<c10::ScalarType> dtype_opt,
@@ -45,7 +45,7 @@ at::Tensor wrapper_empty_strided(
       size, stride, dtype_opt, layout_opt, device_opt, pin_memory_opt);
 }
 
-at::Tensor wrapper_as_strided(
+at::Tensor WrapperAsStrided(
     const at::Tensor& self,
     c10::SymIntArrayRef size,
     c10::SymIntArrayRef stride,
@@ -53,48 +53,48 @@ at::Tensor wrapper_as_strided(
   return at::native::flagos::as_strided(self, size, stride, storage_offset);
 }
 
-const at::Tensor& wrapper_resize_(
+const at::Tensor& WrapperResize(
     const at::Tensor& self,
     c10::SymIntArrayRef size,
     ::std::optional<at::MemoryFormat> memory_format) {
   return at::native::flagos::resize_(self, size, memory_format);
 }
 
-at::Tensor wrapper__reshape_alias(
+at::Tensor WrapperReshapeAlias(
     const at::Tensor& self,
     c10::SymIntArrayRef size,
     c10::SymIntArrayRef stride) {
   return at::native::flagos::_reshape_alias(self, size, stride);
 }
 
-at::Tensor wrapper__copy_from(
+at::Tensor WrapperCopyFrom(
     const at::Tensor& self,
     const at::Tensor& dst,
     bool non_blocking) {
   return at::native::flagos::_copy_from(self, dst, non_blocking);
 }
 
-at::Tensor wrapper__copy_from_and_resize(
+at::Tensor WrapperCopyFromAndResize(
     const at::Tensor& self,
     const at::Tensor& dst) {
   return at::native::flagos::_copy_from_and_resize(self, dst);
 }
 
-at::Scalar wrapper__local_scalar_densor(const at::Tensor& self) {
+at::Scalar WrapperLocalScalarDense(const at::Tensor& self) {
   return at::native::flagos::_local_scalar_dense(self);
 }
 
-at::Tensor& wrapper_set_source_Tensor_(
+at::Tensor& WrapperSetSourceTensor(
     at::Tensor& self,
     const at::Tensor& source) {
   return at::native::flagos::set_source_Tensor_(self, source);
 }
 
-at::Tensor& wrapper_set_source_Storage_(at::Tensor& self, at::Storage source) {
+at::Tensor& WrapperSetSourceStorage(at::Tensor& self, at::Storage source) {
   return at::native::flagos::set_source_Storage_(self, source);
 }
 
-at::Tensor& wrapper_set_source_Storage_storage_offsetset_(
+at::Tensor& WrapperSetSourceStorageOffset(
     at::Tensor& result,
     at::Storage storage,
     int64_t storage_offset,
@@ -104,23 +104,23 @@ at::Tensor& wrapper_set_source_Storage_storage_offsetset_(
       result, storage, storage_offset, size, stride);
 }
 
-at::Tensor wrapper_view(const at::Tensor& self, c10::SymIntArrayRef size) {
+at::Tensor WrapperView(const at::Tensor& self, c10::SymIntArrayRef size) {
   return at::native::flagos::view(self, size);
 }
 
-at::Tensor wrapper_contiguous(
+at::Tensor WrapperContiguous(
     const at::Tensor& self,
     c10::MemoryFormat memory_format) {
   return at::native::flagos::contiguous(self, memory_format);
 }
 
-at::Tensor wrapper_clone(
+at::Tensor WrapperClone(
     const at::Tensor& self,
     std::optional<c10::MemoryFormat> memory_format) {
   return at::native::flagos::clone(self, memory_format);
 }
 
-at::Tensor wrapper__to_copy(
+at::Tensor WrapperToCopy(
     const at::Tensor& self,
     std::optional<c10::ScalarType> dtype,
     std::optional<c10::Layout> layout,
@@ -131,53 +131,53 @@ at::Tensor wrapper__to_copy(
   return at::native::flagos::_to_copy(self, dtype, layout, device, pin_memory, non_blocking, memory_format);
 }
 
-void wrapper_cpu_fallback(
+void WrapperCpuFallback(
     const c10::OperatorHandle& op,
     torch::jit::Stack* stack) {
   at::native::flagos::cpu_fallback(op, stack);
 }
 
-void wrapper_record_stream(at::Tensor& self, at::Stream s) {
+void WrapperRecordStream(at::Tensor& self, at::Stream s) {
   // No-op for flagos tensors.
   // flagos uses cudaMalloc directly (not a caching allocator),
   // so there is no need to track stream usage for memory management.
 }
 
-at::Tensor wrapper_mm(const at::Tensor& self, const at::Tensor& mat2) {
+at::Tensor WrapperMm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), mat2.size(1)}, self.options());
-  at::native::flagos::structured_mm_out_flagos op(out);
+  at::native::flagos::StructuredMmOutFlagos op(out);
   op.meta(self, mat2);
   op.impl(self, mat2, "mm");
   return out;
 }
 
-at::Tensor& wrapper_mm_out(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
-  at::native::flagos::structured_mm_out_flagos op(out);
+at::Tensor& WrapperMmOut(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
+  at::native::flagos::StructuredMmOutFlagos op(out);
   op.meta(self, mat2);
   op.impl(self, mat2, "mm.out");
   return out;
 }
 
-at::Tensor wrapper_bmm(const at::Tensor& self, const at::Tensor& mat2) {
+at::Tensor WrapperBmm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), self.size(1), mat2.size(2)}, self.options());
-  at::native::flagos::structured_bmm_out_flagos op(out);
+  at::native::flagos::StructuredBmmOutFlagos op(out);
   op.meta(self, mat2);
   op.impl(self, mat2, "bmm");
   return out;
 }
 
-at::Tensor& wrapper_bmm_out(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
-  at::native::flagos::structured_bmm_out_flagos op(out);
+at::Tensor& WrapperBmmOut(const at::Tensor& self, const at::Tensor& mat2, at::Tensor& out) {
+  at::native::flagos::StructuredBmmOutFlagos op(out);
   op.meta(self, mat2);
   op.impl(self, mat2, "bmm.out");
   return out;
 }
 
-at::Tensor wrapper_cat(const at::ITensorListRef& tensors, int64_t dim) {
+at::Tensor WrapperCat(const at::ITensorListRef& tensors, int64_t dim) {
   return at::native::flagos::cat_stub(tensors, dim);
 }
 
-at::Tensor wrapper_embedding(
+at::Tensor WrapperEmbedding(
     const at::Tensor& weight, const at::Tensor& indices,
     c10::SymInt padding_idx, bool scale_grad_by_freq, bool sparse) {
   return at::native::flagos::embedding_stub(
@@ -188,36 +188,36 @@ at::Tensor wrapper_embedding(
 
 // Register basic operators for PrivateUse1 dispatch key
 TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
-  m.impl("empty.memory_format", wrapper_empty_memory_format);
-  m.impl("empty_strided", wrapper_empty_strided);
-  m.impl("as_strided", wrapper_as_strided);
-  m.impl("resize_", wrapper_resize_);
-  m.impl("_reshape_alias", wrapper__reshape_alias);
-  m.impl("_copy_from", wrapper__copy_from);
-  m.impl("_copy_from_and_resize", wrapper__copy_from_and_resize);
-  m.impl("_local_scalar_dense", wrapper__local_scalar_densor);
-  m.impl("set_.source_Tensor", wrapper_set_source_Tensor_);
-  m.impl("set_.source_Storage", wrapper_set_source_Storage_);
+  m.impl("empty.memory_format", WrapperEmptyMemoryFormat);
+  m.impl("empty_strided", WrapperEmptyStrided);
+  m.impl("as_strided", WrapperAsStrided);
+  m.impl("resize_", WrapperResize);
+  m.impl("_reshape_alias", WrapperReshapeAlias);
+  m.impl("_copy_from", WrapperCopyFrom);
+  m.impl("_copy_from_and_resize", WrapperCopyFromAndResize);
+  m.impl("_local_scalar_dense", WrapperLocalScalarDense);
+  m.impl("set_.source_Tensor", WrapperSetSourceTensor);
+  m.impl("set_.source_Storage", WrapperSetSourceStorage);
   m.impl(
       "set_.source_Storage_storage_offset",
-      wrapper_set_source_Storage_storage_offsetset_);
-  m.impl("view", wrapper_view);
-  m.impl("contiguous", wrapper_contiguous);
-  m.impl("clone", wrapper_clone);
-  m.impl("_to_copy", wrapper__to_copy);
-  m.impl("record_stream", wrapper_record_stream);
-  m.impl("mm", wrapper_mm);
-  m.impl("mm.out", wrapper_mm_out);
-  m.impl("bmm", wrapper_bmm);
-  m.impl("bmm.out", wrapper_bmm_out);
-  m.impl("cat", wrapper_cat);
-  m.impl("embedding", wrapper_embedding);
+      WrapperSetSourceStorageOffset);
+  m.impl("view", WrapperView);
+  m.impl("contiguous", WrapperContiguous);
+  m.impl("clone", WrapperClone);
+  m.impl("_to_copy", WrapperToCopy);
+  m.impl("record_stream", WrapperRecordStream);
+  m.impl("mm", WrapperMm);
+  m.impl("mm.out", WrapperMmOut);
+  m.impl("bmm", WrapperBmm);
+  m.impl("bmm.out", WrapperBmmOut);
+  m.impl("cat", WrapperCat);
+  m.impl("embedding", WrapperEmbedding);
 }
 
 // Register fallback for all unimplemented operators
 TORCH_LIBRARY_IMPL(_, PrivateUse1, m) {
   m.fallback(
-      torch::CppFunction::makeFromBoxedFunction<&wrapper_cpu_fallback>());
+      torch::CppFunction::makeFromBoxedFunction<&WrapperCpuFallback>());
 }
 
 // Register AutogradPrivateUse1 fallback to dispatch to PrivateUse1

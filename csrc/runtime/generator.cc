@@ -13,9 +13,9 @@ static std::vector<at::Generator> default_generators;
 
 namespace c10::flagos {
 
-const at::Generator& getDefaultGenerator(c10::DeviceIndex device_index) {
+const at::Generator& GetDefaultGenerator(c10::DeviceIndex device_index) {
   static bool flag [[maybe_unused]] = []() {
-    auto device_nums = device_count();
+    auto device_nums = DeviceCount();
     default_generators.resize(device_nums);
     for (auto i = 0; i < device_nums; i++) {
       default_generators[i] = at::make_generator<GeneratorImpl>(i);
@@ -26,9 +26,9 @@ const at::Generator& getDefaultGenerator(c10::DeviceIndex device_index) {
 
   c10::DeviceIndex idx = device_index;
   if (idx == -1) {
-    idx = current_device();
+    idx = CurrentDevice();
   } else {
-    TORCH_CHECK(idx >= 0 && idx < device_count());
+    TORCH_CHECK(idx >= 0 && idx < DeviceCount());
   }
   return default_generators[idx];
 }

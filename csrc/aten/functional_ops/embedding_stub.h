@@ -7,8 +7,8 @@
 
 namespace at::native::flagos {
 
-using embedding_fn = at::Tensor (*)(const at::Tensor&, const at::Tensor&,
+using EmbeddingFn = at::Tensor (*)(const at::Tensor&, const at::Tensor&,
                                      int64_t, bool, bool);
-FLAGOS_DECLARE_DISPATCH(embedding_fn, embedding_stub)
+FLAGOS_DECLARE_DISPATCH(EmbeddingFn, embedding_stub)
 
 } // namespace at::native::flagos

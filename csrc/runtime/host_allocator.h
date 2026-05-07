@@ -10,6 +10,6 @@
 
 namespace c10::flagos {
 
-c10::Allocator* getHostAllocator();
+c10::Allocator* GetHostAllocator();
 
 } // namespace c10::flagos

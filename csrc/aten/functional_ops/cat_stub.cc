@@ -9,7 +9,7 @@
 
 namespace at::native::flagos {
 
-FLAGOS_DEFINE_DISPATCH(cat_fn, cat_stub, "cat")
+FLAGOS_DEFINE_DISPATCH(CatFn, cat_stub, "cat")
 
 namespace {
 
@@ -49,7 +49,7 @@ at::Tensor cat_kernel_cuda(const at::ITensorListRef& tensors, int64_t dim) {
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(cat_fn, cat_stub, FlagosDevice::FlagOS, cat_kernel_flaggems)
-FLAGOS_REGISTER_DISPATCH(cat_fn, cat_stub, FlagosDevice::CUDA,   cat_kernel_cuda)
+FLAGOS_REGISTER_DISPATCH(CatFn, cat_stub, FlagosDevice::kFlagOs, cat_kernel_flaggems)
+FLAGOS_REGISTER_DISPATCH(CatFn, cat_stub, FlagosDevice::kCuda,   cat_kernel_cuda)
 
 } // namespace at::native::flagos

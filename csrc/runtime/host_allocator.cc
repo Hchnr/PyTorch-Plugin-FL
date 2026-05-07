@@ -43,7 +43,7 @@ static HostAllocator host_alloc;
 
 } // namespace
 
-c10::Allocator* getHostAllocator() {
+c10::Allocator* GetHostAllocator() {
   return &host_alloc;
 }
 

@@ -19,9 +19,9 @@ Error_t GetDeviceCount(int* dev_count);
 Error_t GetDevice(DeviceIndex* device);
 Error_t SetDevice(DeviceIndex device);
 
-FLAGOS_EXPORT DeviceIndex device_count() noexcept;
-FLAGOS_EXPORT DeviceIndex current_device();
-FLAGOS_EXPORT void set_device(DeviceIndex device);
+FLAGOS_EXPORT DeviceIndex DeviceCount() noexcept;
+FLAGOS_EXPORT DeviceIndex CurrentDevice();
+FLAGOS_EXPORT void SetCurrentDevice(DeviceIndex device);
 FLAGOS_EXPORT DeviceIndex ExchangeDevice(DeviceIndex device);
 
 } // namespace c10::flagos

@@ -14,7 +14,7 @@ namespace at::native::flagos {
 
 namespace {
 
-std::string default_config_path() {
+std::string DefaultConfigPath() {
   // Resolve relative to this shared library's location at runtime would require
   // dladdr; instead use the source-tree convention: the config lives at
   // <package_root>/torch_fl/backends.conf, where package_root is two directories
@@ -23,11 +23,11 @@ std::string default_config_path() {
   return FLAGOS_SOURCE_ROOT "/torch_fl/backends.conf";
 }
 
-std::unordered_map<std::string, FlagosDevice> load_backend_config() {
+std::unordered_map<std::string, FlagosDevice> LoadBackendConfig() {
   std::unordered_map<std::string, FlagosDevice> table;
 
   const char* env = std::getenv("FLAGOS_BACKEND_CONFIG");
-  std::string path = env ? env : default_config_path();
+  std::string path = env ? env : DefaultConfigPath();
 
   std::ifstream f(path);
   if (!f.is_open()) {
@@ -57,12 +57,12 @@ std::unordered_map<std::string, FlagosDevice> load_backend_config() {
     if (op.empty() || val.empty()) continue;
 
     if (val == "cuda") {
-      table[op] = FlagosDevice::CUDA;
+      table[op] = FlagosDevice::kCuda;
     } else if (val == "flagos" || val == "flaggems") {
-      table[op] = FlagosDevice::FlagOS;
+      table[op] = FlagosDevice::kFlagOs;
     } else {
       fprintf(stderr, "[flagos] unknown backend '%s' for op '%s', using flagos\n", val.c_str(), op.c_str());
-      table[op] = FlagosDevice::FlagOS;
+      table[op] = FlagosDevice::kFlagOs;
     }
   }
 
@@ -80,10 +80,10 @@ std::unordered_map<std::string, FlagosDevice> load_backend_config() {
     if (!override_val) continue;
     std::string v(override_val);
     if (v == "cuda") {
-      table[op] = FlagosDevice::CUDA;
+      table[op] = FlagosDevice::kCuda;
       fprintf(stderr, "[flagos] env override: %s -> cuda\n", op.c_str());
     } else if (v == "flagos" || v == "flaggems") {
-      table[op] = FlagosDevice::FlagOS;
+      table[op] = FlagosDevice::kFlagOs;
       fprintf(stderr, "[flagos] env override: %s -> flaggems\n", op.c_str());
     }
   }
@@ -91,17 +91,17 @@ std::unordered_map<std::string, FlagosDevice> load_backend_config() {
   return table;
 }
 
-const std::unordered_map<std::string, FlagosDevice>& backend_table() {
-  static const auto table = load_backend_config();
+const std::unordered_map<std::string, FlagosDevice>& BackendTable() {
+  static const auto table = LoadBackendConfig();
   return table;
 }
 
 } // namespace
 
-FlagosDevice get_backend_for_op(const std::string& op_name) {
-  const auto& table = backend_table();
+FlagosDevice GetBackendForOp(const std::string& op_name) {
+  const auto& table = BackendTable();
   auto it = table.find(op_name);
-  return it != table.end() ? it->second : FlagosDevice::FlagOS;
+  return it != table.end() ? it->second : FlagosDevice::kFlagOs;
 }
 
 } // namespace at::native::flagos
