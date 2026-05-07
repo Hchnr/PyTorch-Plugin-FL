@@ -16,8 +16,8 @@
 #include <torch/csrc/utils/python_numbers.h>
 #include <torch/csrc/autograd/python_variable.h>
 
-#include <runtime/Functions.h>
-#include <include/Macros.h>
+#include <runtime/functions.h>
+#include <include/macros.h>
 
 namespace {
 

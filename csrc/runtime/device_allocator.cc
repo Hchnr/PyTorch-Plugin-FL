@@ -4,7 +4,7 @@
 // Below is the original copyright:
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "DeviceAllocator.h"
+#include "device_allocator.h"
 
 namespace c10::flagos {
 

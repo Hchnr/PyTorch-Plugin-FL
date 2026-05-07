@@ -7,7 +7,7 @@
 #pragma once
 
 #include <ATen/ATen.h>
-#include "../Common.h"
+#include "../common.h"
 
 namespace at::native::flagos {
 

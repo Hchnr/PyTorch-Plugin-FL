@@ -5,7 +5,7 @@
 // Below is the original copyright:
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "Hooks.h"
+#include "hooks.h"
 
 namespace c10::flagos {
 

@@ -15,8 +15,8 @@
 #include <cuda_runtime.h>
 #include <accelerator/include/flagos.h>
 
-#include "Generator.h"
-#include "HostAllocator.h"
+#include "generator.h"
+#include "host_allocator.h"
 
 namespace c10::flagos {
 

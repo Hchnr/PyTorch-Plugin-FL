@@ -6,7 +6,7 @@
 // Below is the original copyright:
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
-#include "Generator.h"
+#include "generator.h"
 
 // Default, global generators, one per device.
 static std::vector<at::Generator> default_generators;

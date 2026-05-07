@@ -3,7 +3,7 @@
 #pragma once
 
 #include <ATen/core/Tensor.h>
-#include "../DispatchStub.h"
+#include "../dispatch_stub.h"
 
 namespace at::native::flagos {
 

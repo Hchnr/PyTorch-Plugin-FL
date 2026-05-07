@@ -8,7 +8,7 @@
 
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <torch/library.h>
-#include "../Common.h"
+#include "../common.h"
 
 namespace at::native::flagos {
 

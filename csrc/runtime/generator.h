@@ -12,7 +12,7 @@
 
 #include <c10/core/Device.h>
 
-#include "Functions.h"
+#include "functions.h"
 
 namespace c10::flagos {
 

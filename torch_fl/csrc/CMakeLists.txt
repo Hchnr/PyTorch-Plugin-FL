@@ -1,7 +1,7 @@
 set(LIBRARY_NAME torch_bindings)
 
 file(GLOB_RECURSE SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
 )
 
 add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})
