@@ -34,17 +34,17 @@ Error_t SetDevice(DeviceIndex device) {
   return ::SetDevice(device);
 }
 
-int device_count_impl() {
+int DeviceCountImpl() {
   int count = 0;
   GetDeviceCount(&count);
   return count;
 }
 
-FLAGOS_EXPORT DeviceIndex device_count() noexcept {
+FLAGOS_EXPORT DeviceIndex DeviceCount() noexcept {
   // initialize number of devices only once
   static int count = []() {
     try {
-      auto result = device_count_impl();
+      auto result = DeviceCountImpl();
       TORCH_INTERNAL_ASSERT(
           result <= std::numeric_limits<DeviceIndex>::max(),
           "Too many devices, DeviceIndex overflowed");
@@ -58,13 +58,13 @@ FLAGOS_EXPORT DeviceIndex device_count() noexcept {
   return static_cast<DeviceIndex>(count);
 }
 
-FLAGOS_EXPORT DeviceIndex current_device() {
+FLAGOS_EXPORT DeviceIndex CurrentDevice() {
   DeviceIndex cur_device = -1;
   GetDevice(&cur_device);
   return cur_device;
 }
 
-FLAGOS_EXPORT void set_device(DeviceIndex device) {
+FLAGOS_EXPORT void SetCurrentDevice(DeviceIndex device) {
   SetDevice(device);
 }
 

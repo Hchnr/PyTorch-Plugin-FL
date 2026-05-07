@@ -36,7 +36,7 @@ struct HooksInterface : public at::PrivateUse1HooksInterface {
   }
 
   at::Allocator* getPinnedMemoryAllocator() const override {
-    return getHostAllocator();
+    return GetHostAllocator();
   }
 
   bool isPinnedPtr(const void* data) const override {
@@ -66,7 +66,7 @@ struct HooksInterface : public at::PrivateUse1HooksInterface {
 
   const at::Generator& getDefaultGenerator(
       c10::DeviceIndex device_index) const override {
-    return c10::flagos::getDefaultGenerator(device_index);
+    return c10::flagos::GetDefaultGenerator(device_index);
   }
 
   at::Generator getNewGenerator(c10::DeviceIndex device_index) const override {

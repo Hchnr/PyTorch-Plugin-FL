@@ -8,7 +8,7 @@
 
 namespace at::native::flagos {
 
-FLAGOS_DEFINE_DISPATCH(mm_fn, mm_stub, "mm")
+FLAGOS_DEFINE_DISPATCH(MmFn, mm_stub, "mm")
 
 namespace {
 
@@ -39,7 +39,7 @@ void mm_kernel_cuda(
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(mm_fn, mm_stub, FlagosDevice::FlagOS, mm_kernel_flaggems)
-FLAGOS_REGISTER_DISPATCH(mm_fn, mm_stub, FlagosDevice::CUDA,   mm_kernel_cuda)
+FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kFlagOs, mm_kernel_flaggems)
+FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kCuda,   mm_kernel_cuda)
 
 } // namespace at::native::flagos

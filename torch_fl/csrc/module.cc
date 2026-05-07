@@ -193,7 +193,7 @@ PyObject* _setDevice(PyObject* self, PyObject* arg) {
   auto device = THPUtils_unpackLong(arg);
 
   torch::utils::device_lazy_init(at::kPrivateUse1);
-  c10::flagos::set_device(static_cast<c10::DeviceIndex>(device));
+  c10::flagos::SetCurrentDevice(static_cast<c10::DeviceIndex>(device));
 
   Py_RETURN_NONE;
   END_HANDLE_TH_ERRORS
@@ -217,14 +217,14 @@ PyObject* _exchangeDevice(PyObject* self, PyObject* arg) {
 PyObject* _getDevice(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
   torch::utils::device_lazy_init(at::kPrivateUse1);
-  auto device = static_cast<int32_t>(c10::flagos::current_device());
+  auto device = static_cast<int32_t>(c10::flagos::CurrentDevice());
   return THPUtils_packInt32(device);
   END_HANDLE_TH_ERRORS
 }
 
 PyObject* _getDeviceCount(PyObject* self, PyObject* noargs) {
   HANDLE_TH_ERRORS
-  return THPUtils_packUInt64(c10::flagos::device_count());
+  return THPUtils_packUInt64(c10::flagos::DeviceCount());
   END_HANDLE_TH_ERRORS
 }
 

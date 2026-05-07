@@ -25,7 +25,7 @@ class GeneratorImpl : public at::CPUGeneratorImpl {
   ~GeneratorImpl() override = default;
 };
 
-const at::Generator& getDefaultGenerator(
+const at::Generator& GetDefaultGenerator(
     c10::DeviceIndex device_index = -1);
 
 } // namespace c10::flagos

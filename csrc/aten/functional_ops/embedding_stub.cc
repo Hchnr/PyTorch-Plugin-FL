@@ -7,7 +7,7 @@
 
 namespace at::native::flagos {
 
-FLAGOS_DEFINE_DISPATCH(embedding_fn, embedding_stub, "embedding")
+FLAGOS_DEFINE_DISPATCH(EmbeddingFn, embedding_stub, "embedding")
 
 namespace {
 
@@ -28,7 +28,7 @@ at::Tensor embedding_kernel_cuda(
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(embedding_fn, embedding_stub, FlagosDevice::FlagOS, embedding_kernel_flaggems)
-FLAGOS_REGISTER_DISPATCH(embedding_fn, embedding_stub, FlagosDevice::CUDA,   embedding_kernel_cuda)
+FLAGOS_REGISTER_DISPATCH(EmbeddingFn, embedding_stub, FlagosDevice::kFlagOs, embedding_kernel_flaggems)
+FLAGOS_REGISTER_DISPATCH(EmbeddingFn, embedding_stub, FlagosDevice::kCuda,   embedding_kernel_cuda)
 
 } // namespace at::native::flagos

@@ -7,7 +7,7 @@
 
 namespace at::native::flagos {
 
-using mm_fn = void (*)(const at::Tensor&, const at::Tensor&, at::Tensor&);
-FLAGOS_DECLARE_DISPATCH(mm_fn, mm_stub)
+using MmFn = void (*)(const at::Tensor&, const at::Tensor&, at::Tensor&);
+FLAGOS_DECLARE_DISPATCH(MmFn, mm_stub)
 
 } // namespace at::native::flagos

@@ -9,8 +9,8 @@
 
 namespace at::native::flagos {
 
-struct structured_bmm_out_flagos final : public at::meta::structured_bmm {
-  explicit structured_bmm_out_flagos(at::Tensor& out) : out_(out) {}
+struct StructuredBmmOutFlagos final : public at::meta::structured_bmm {
+  explicit StructuredBmmOutFlagos(at::Tensor& out) : out_(out) {}
 
   void set_output_strided(
       int64_t output_idx,
