@@ -1,6 +1,6 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "Common.h"
+#include "common.h"
 
 #include <cstdio>
 

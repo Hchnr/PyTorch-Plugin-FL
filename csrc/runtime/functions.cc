@@ -6,8 +6,8 @@
 
 #include <accelerator/include/flagos.h>
 
-#include "Exception.h"
-#include "Functions.h"
+#include "exception.h"
+#include "functions.h"
 
 #include <c10/util/Exception.h>
 #include <limits>

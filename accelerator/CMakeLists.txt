@@ -9,7 +9,7 @@ endif()
 set(LIBRARY_NAME flagos)
 
 file(GLOB_RECURSE SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/csrc/cuda/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/csrc/cuda/*.cc"
 )
 
 add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})
