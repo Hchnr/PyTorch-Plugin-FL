@@ -57,6 +57,16 @@ ACCELERATOR=maca pip install -e . --no-build-isolation
 | `MACA_PATH` | MACA SDK 路径（默认 `/opt/maca`） |
 | `FLAGGEMS_DIR` | FlagGems C++ 库路径（启用低开销 C++ dispatch） |
 
+### 运行时环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `FLAGOS_DISABLE_FLAGGEMS_PY` | 设为 `1` 关闭 FlagGems Python 层注册（C++ stub-only 模式） |
+| `FLAGGEMS_SOURCE_DIR` | FlagGems 源码目录（当 C++ native API 算子路由到 `flaggems` 后端时必须设置） |
+| `FLAGOS_BACKEND_CONFIG` | 覆盖 `backends.conf` 路径 |
+| `FLAGOS_LOG_DISPATCH` | 设为 `1` 打印每次算子 dispatch 的后端选择 |
+| `FLAGOS_OP_<name>` | 按算子覆盖后端（算子名中的 `.` 替换为 `__`） |
+
 ## 使用
 
 ### 基本用法
@@ -102,6 +112,22 @@ import torch
 原因：PyTorch 自带的 CUDA 12.x 运行时与 MACA 的 cu-bridge（CUDA 11.6 兼容层）ABI 不兼容。`torch_fl` 会预加载一个 shim 库来提供所需的符号版本。
 
 CUDA 平台无此限制。
+
+### C++ Stub-Only 模式
+
+可以完全关闭 FlagGems Python 层注册，仅使用 C++ 统一 wrapper 进行算子 dispatch。适用于验证 C++ stub 覆盖度是否完整。
+
+```bash
+# 必须：告知 FlagGems C++ native API Triton kernel 源码位置
+export FLAGGEMS_SOURCE_DIR=$(python -c "import os;import flag_gems;print(os.path.dirname(flag_gems.__file__))")
+
+# 关闭 FlagGems Python 层注册
+export FLAGOS_DISABLE_FLAGGEMS_PY=1
+
+python your_script.py
+```
+
+此模式下所有算子 dispatch 由 C++ dispatch stub（`backends.conf` 路由）处理，不经过 FlagGems 的 Python `torch.library` 注册。
 
 ### 查询状态
 
@@ -184,9 +210,11 @@ PyTorch-Plugin-FL/
 │   ├── aten/                 # ATen 算子层
 │   │   ├── common.{h,cc}    #   后端配置加载、FlagosDevice 枚举
 │   │   ├── dispatch_stub.h   #   轻量 dispatch stub（替代 PyTorch DispatchStub）
+│   │   ├── device_boxing.h   #   零拷贝 flagos↔CUDA tensor 元数据转换
 │   │   ├── register.cc       #   PrivateUse1 dispatch key 注册
 │   │   ├── factory_ops/      #   基础算子（empty、copy、contiguous、set、fallback）
-│   │   └── functional_ops/   #   计算算子（mm、bmm、cat、embedding）
+│   │   ├── functional_ops/   #   计算算子（mm、bmm、cat、embedding、softmax 等）
+│   │   └── native/cuda/      #   修改版 CUDA kernel（Loops.cuh 放宽设备检查）
 │   └── runtime/              # 设备运行时
 │       ├── device_allocator  #   设备内存分配器
 │       ├── host_allocator    #   pinned memory 分配器

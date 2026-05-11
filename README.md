@@ -8,7 +8,6 @@ A custom PyTorch device plugin based on the PrivateUse1 extension mechanism, reg
 - Configurable backend routing: select FlagGems or native vendor backend (CUDA/MACA) at per-operator granularity
 - Currently supports CUDA and MACA (MetaX) hardware platforms
 - Complete device management API (stream, event, RNG, AMP)
-
 ## Requirements
 
 | Dependency | Version |
@@ -56,6 +55,16 @@ ACCELERATOR=maca pip install -e . --no-build-isolation
 | `MACA_PATH` | MACA SDK path (default `/opt/maca`) |
 | `FLAGGEMS_DIR` | FlagGems C++ library path (enables low-overhead C++ dispatch) |
 
+### Runtime Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `FLAGOS_DISABLE_FLAGGEMS_PY` | Set to `1` to disable FlagGems Python-layer registration (C++ stub-only mode) |
+| `FLAGGEMS_SOURCE_DIR` | FlagGems source directory (required when C++ native API ops route to `flaggems` backend) |
+| `FLAGOS_BACKEND_CONFIG` | Override path for `backends.conf` |
+| `FLAGOS_LOG_DISPATCH` | Set to `1` to print backend selection for each operator dispatch |
+| `FLAGOS_OP_<name>` | Per-operator backend override (replace `.` with `__` in op names) |
+
 ## Usage
 
 ### Basic Usage
@@ -101,6 +110,22 @@ import torch
 Reason: PyTorch's bundled CUDA 12.x runtime is ABI-incompatible with MACA's cu-bridge (CUDA 11.6 compatibility layer). `torch_fl` preloads a shim library to provide the required symbol versions.
 
 This restriction does not apply to CUDA platforms.
+
+### C++ Stub-Only Mode
+
+You can disable the FlagGems Python-layer registration entirely, leaving only the C++ unified wrapper active. This is useful for verifying that all required operators are covered by C++ stubs.
+
+```bash
+# Required: tell FlagGems C++ native API where to find Triton kernel sources
+export FLAGGEMS_SOURCE_DIR=$(python -c "import os;import flag_gems;print(os.path.dirname(flag_gems.__file__))")
+
+# Disable Python-layer FlagGems registration
+export FLAGOS_DISABLE_FLAGGEMS_PY=1
+
+python your_script.py
+```
+
+In this mode, all operator dispatch is handled by the C++ dispatch stub (`backends.conf` routing), with no Python-layer `torch.library` registrations from FlagGems.
 
 ### Query Status
 
@@ -183,9 +208,11 @@ PyTorch-Plugin-FL/
 │   ├── aten/                 # ATen operator layer
 │   │   ├── common.{h,cc}    #   Backend config loading, FlagosDevice enum
 │   │   ├── dispatch_stub.h   #   Lightweight dispatch stub (replaces PyTorch DispatchStub)
+│   │   ├── device_boxing.h   #   Zero-copy flagos↔CUDA tensor metadata conversion
 │   │   ├── register.cc       #   PrivateUse1 dispatch key registration
 │   │   ├── factory_ops/      #   Basic operators (empty, copy, contiguous, set, fallback)
-│   │   └── functional_ops/   #   Compute operators (mm, bmm, cat, embedding)
+│   │   ├── functional_ops/   #   Compute operators (mm, bmm, cat, embedding, softmax, etc.)
+│   │   └── native/cuda/      #   Modified CUDA kernels (Loops.cuh with relaxed device checks)
 │   └── runtime/              # Device runtime
 │       ├── device_allocator  #   Device memory allocator
 │       ├── host_allocator    #   Pinned memory allocator

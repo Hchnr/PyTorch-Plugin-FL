@@ -172,8 +172,16 @@ def _register_flaggems_operators():
 
     Flagos and CUDA share the same GPU memory, so FlagGems Triton kernels
     can operate directly on flagos tensor pointers without conversion.
+
+    Set FLAGOS_DISABLE_FLAGGEMS_PY=1 to skip Python-layer FlagGems registration,
+    leaving only the C++ stub dispatch path active.
     """
     global _flaggems_lib, _autograd_lib, _registered_ops
+
+    import os
+    if os.environ.get("FLAGOS_DISABLE_FLAGGEMS_PY", "0") == "1":
+        _registered_ops = []
+        return 0
 
     try:
         from flag_gems import _FULL_CONFIG
