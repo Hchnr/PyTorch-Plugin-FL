@@ -26,11 +26,11 @@ if is_maca_available():
 
 
 import torch_fl._C  # type: ignore[misc]  # noqa: E402
-import torch_fl.flagos  # noqa: E402
+from . import flagos  # noqa: E402
 
 
 torch.utils.rename_privateuse1_backend("flagos")
-torch._register_device_module("flagos", torch_fl.flagos)
+torch._register_device_module("flagos", flagos)
 torch.utils.generate_methods_for_privateuse1_backend(for_storage=True)
 
 
