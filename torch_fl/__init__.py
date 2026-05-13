@@ -25,7 +25,7 @@ if is_maca_available():
     patch_torch_cuda_for_maca()
 
 
-import torch_fl._C  # type: ignore[misc]  # noqa: E402
+import torch_fl._C  # type: ignore[misc]  # noqa: E402, F401
 from . import flagos  # noqa: E402
 
 
