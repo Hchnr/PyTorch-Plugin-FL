@@ -10,4 +10,8 @@ namespace at::native::flagos {
 using LogSoftmaxFn = at::Tensor (*)(const at::Tensor&, int64_t, bool);
 FLAGOS_DECLARE_DISPATCH(LogSoftmaxFn, log_softmax_stub)
 
+using LogSoftmaxBackwardDataFn =
+    at::Tensor (*)(const at::Tensor&, const at::Tensor&, int64_t, at::ScalarType);
+FLAGOS_DECLARE_DISPATCH(LogSoftmaxBackwardDataFn, log_softmax_backward_data_stub)
+
 } // namespace at::native::flagos

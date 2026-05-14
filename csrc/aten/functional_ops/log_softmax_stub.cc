@@ -4,12 +4,17 @@
 
 #include <ATen/ops/_log_softmax_meta.h>
 #include <ATen/ops/_log_softmax_native.h>
+#include <ATen/ops/_log_softmax_backward_data_native.h>
 
 #include "../device_boxing.h"
 
 namespace at::native::flagos {
 
 FLAGOS_DEFINE_DISPATCH(LogSoftmaxFn, log_softmax_stub, "_log_softmax")
+FLAGOS_DEFINE_DISPATCH(
+    LogSoftmaxBackwardDataFn,
+    log_softmax_backward_data_stub,
+    "_log_softmax_backward_data")
 
 namespace {
 
@@ -37,6 +42,43 @@ at::Tensor LogSoftmaxKernelCuda(const at::Tensor& self, int64_t dim, bool half_t
   return output;
 }
 
+at::Tensor LogSoftmaxBackwardDataKernelCuda(
+    const at::Tensor& grad_output,
+    const at::Tensor& output,
+    int64_t dim,
+    at::ScalarType input_dtype) {
+  BoxToCuda(grad_output);
+  BoxToCuda(output);
+
+  struct CudaImpl final : public at::native::structured_log_softmax_backward_cuda_out {
+    at::Tensor grad_input_;
+
+    void set_output_raw_strided(
+        int64_t,
+        at::IntArrayRef sizes,
+        at::IntArrayRef strides,
+        at::TensorOptions options,
+        at::DimnameList) override {
+      grad_input_ = strides.empty()
+          ? at::empty(sizes, options)
+          : at::empty_strided(sizes, strides, options);
+    }
+
+    const at::Tensor& maybe_get_output(int64_t) override {
+      return grad_input_;
+    }
+  };
+
+  CudaImpl op;
+  op.meta(grad_output, output, dim, input_dtype);
+  op.impl(grad_output, output, dim, input_dtype, op.grad_input_);
+
+  UnboxToFlagos(grad_output);
+  UnboxToFlagos(output);
+  UnboxToFlagos(op.grad_input_);
+  return op.grad_input_;
+}
+
 } // namespace
 
 // FlagGems does not currently export a C++ log_softmax kernel
@@ -44,5 +86,10 @@ at::Tensor LogSoftmaxKernelCuda(const at::Tensor& self, int64_t dim, bool half_t
 // Only the CUDA backend is registered; routing to flaggems would
 // fail with "backend not registered".
 FLAGOS_REGISTER_DISPATCH(LogSoftmaxFn, log_softmax_stub, FlagosDevice::kCuda, LogSoftmaxKernelCuda)
+FLAGOS_REGISTER_DISPATCH(
+    LogSoftmaxBackwardDataFn,
+    log_softmax_backward_data_stub,
+    FlagosDevice::kCuda,
+    LogSoftmaxBackwardDataKernelCuda)
 
 } // namespace at::native::flagos

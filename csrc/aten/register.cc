@@ -260,6 +260,8 @@ at::Tensor WrapperSoftmax(const at::Tensor& self, int64_t dim, bool half_to_floa
 
 at::Tensor WrapperLogSoftmax(const at::Tensor& self, int64_t dim, bool half_to_float) {
   return at::native::flagos::log_softmax_stub(self, dim, half_to_float);
+}
+
 at::Tensor WrapperLogSoftmaxBackwardData(
     const at::Tensor& grad_output,
     const at::Tensor& output,
