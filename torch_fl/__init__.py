@@ -296,8 +296,8 @@ def _register_composite_ops():
             grad_input = grad_output - exp_output * grad_output.sum(dim=dim, keepdim=True)
             return grad_input.to(input_dtype)
 
-    lib.impl("_log_softmax", log_softmax_impl, "PrivateUse1")
-    # lib.impl("_log_softmax_backward_data", log_softmax_backward_impl, "PrivateUse1")
+        lib.impl("_log_softmax", log_softmax_impl, "PrivateUse1")
+        # lib.impl("_log_softmax_backward_data", log_softmax_backward_impl, "PrivateUse1")
 
     return lib  # prevent GC
 
