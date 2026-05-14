@@ -260,6 +260,13 @@ at::Tensor WrapperSoftmax(const at::Tensor& self, int64_t dim, bool half_to_floa
 
 at::Tensor WrapperLogSoftmax(const at::Tensor& self, int64_t dim, bool half_to_float) {
   return at::native::flagos::log_softmax_stub(self, dim, half_to_float);
+at::Tensor WrapperLogSoftmaxBackwardData(
+    const at::Tensor& grad_output,
+    const at::Tensor& output,
+    int64_t dim,
+    at::ScalarType input_dtype) {
+  return at::native::flagos::log_softmax_backward_data_stub(
+      grad_output, output, dim, input_dtype);
 }
 
 at::Tensor WrapperBitwiseAndTensor(const at::Tensor& self, const at::Tensor& other) {
@@ -399,6 +406,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("all", WrapperAll);
   m.impl("_softmax", WrapperSoftmax);
   m.impl("_log_softmax", WrapperLogSoftmax);
+  m.impl("_log_softmax_backward_data", WrapperLogSoftmaxBackwardData);
   m.impl("bitwise_and.Tensor", WrapperBitwiseAndTensor);
   m.impl("le.Tensor", WrapperLeTensor);
   m.impl("where.self", WrapperWhereSelf);

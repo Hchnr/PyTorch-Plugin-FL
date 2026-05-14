@@ -25,12 +25,12 @@ if is_maca_available():
     patch_torch_cuda_for_maca()
 
 
-import torch_fl._C  # type: ignore[misc]  # noqa: E402
-import torch_fl.flagos  # noqa: E402
+import torch_fl._C  # type: ignore[misc]  # noqa: E402, F401
+from . import flagos  # noqa: E402
 
 
 torch.utils.rename_privateuse1_backend("flagos")
-torch._register_device_module("flagos", torch_fl.flagos)
+torch._register_device_module("flagos", flagos)
 torch.utils.generate_methods_for_privateuse1_backend(for_storage=True)
 
 
@@ -111,6 +111,7 @@ _EXCLUDED_OPS = {
     # log_softmax - FlagGems Triton kernel exceeds MACA's 4KB/thread private memory
     # limit on large vocab (e.g. Qwen3 151k). Use Python decomposition instead.
     "_log_softmax",
+    # _log_softmax_backward_data is handled by C++ DispatchStub.
     "_log_softmax_backward_data",
     # Ops dispatched by C++ stub (DispatchStub) which reads backends.conf
     # at load time to route to flaggems or cuda per-op.
@@ -195,6 +196,7 @@ def _register_flaggems_operators():
     global _flaggems_lib, _autograd_lib, _registered_ops
 
     import os
+
     if os.environ.get("FLAGOS_DISABLE_FLAGGEMS_PY", "0") == "1":
         _registered_ops = []
         return 0
@@ -290,7 +292,7 @@ def _register_composite_ops():
         return grad_input.to(input_dtype)
 
     lib.impl("_log_softmax", log_softmax_impl, "PrivateUse1")
-    lib.impl("_log_softmax_backward_data", log_softmax_backward_impl, "PrivateUse1")
+    # lib.impl("_log_softmax_backward_data", log_softmax_backward_impl, "PrivateUse1")
 
     return lib  # prevent GC
 
