@@ -4,6 +4,7 @@
 
 #include <ATen/ops/_softmax_meta.h>
 #include <ATen/ops/_softmax_native.h>
+
 #include <flag_gems/operators.h>
 
 #include "../device_boxing.h"
@@ -50,5 +51,4 @@ at::Tensor SoftmaxKernelCuda(const at::Tensor& self, int64_t dim, bool half_to_f
 
 FLAGOS_REGISTER_DISPATCH(SoftmaxFn, softmax_stub, FlagosDevice::kFlagOs, SoftmaxKernelFlaggems)
 FLAGOS_REGISTER_DISPATCH(SoftmaxFn, softmax_stub, FlagosDevice::kCuda, SoftmaxKernelCuda)
-
 } // namespace at::native::flagos
