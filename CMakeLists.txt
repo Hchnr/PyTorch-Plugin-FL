@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda or maca")
+set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda, maca, or npu")
 
-if(ACCELERATOR STREQUAL "maca")
+if(ACCELERATOR STREQUAL "npu")
+  project(TORCH_FLAGOS CXX C)
+elseif(ACCELERATOR STREQUAL "maca")
   project(TORCH_FLAGOS CXX C)
 else()
   project(TORCH_FLAGOS CUDA CXX C)
@@ -35,7 +37,30 @@ set(CMAKE_INSTALL_MESSAGE NEVER)
 
 set(Torch_DIR ${PYTORCH_INSTALL_DIR}/share/cmake/Torch)
 
-if(ACCELERATOR STREQUAL "maca")
+if(ACCELERATOR STREQUAL "npu")
+  # Huawei CANN SDK
+  if(NOT ASCEND_HOME)
+    set(ASCEND_HOME "$ENV{ASCEND_HOME}")
+  endif()
+  if(NOT ASCEND_HOME)
+    set(ASCEND_HOME "/usr/local/Ascend/ascend-toolkit/latest")
+  endif()
+  message(STATUS "Huawei CANN SDK path: ${ASCEND_HOME}")
+
+  add_library(cuda_runtime_compat INTERFACE IMPORTED)
+  set_target_properties(cuda_runtime_compat PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${ASCEND_HOME}/include"
+  )
+  target_link_directories(cuda_runtime_compat INTERFACE "${ASCEND_HOME}/lib64")
+  target_link_libraries(cuda_runtime_compat INTERFACE ascendcl)
+
+  set(CUDA_RUNTIME_LIB cuda_runtime_compat)
+
+  add_library(torch::cudart INTERFACE IMPORTED)
+  if(NOT TARGET CUDA::nvToolsExt)
+    add_library(CUDA::nvToolsExt INTERFACE IMPORTED)
+  endif()
+elseif(ACCELERATOR STREQUAL "maca")
   # Muxi MACA SDK: use cu-bridge headers and runtime_cu library
   if(NOT MACA_PATH)
     set(MACA_PATH "$ENV{MACA_PATH}")

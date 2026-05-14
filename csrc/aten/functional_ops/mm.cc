@@ -8,6 +8,11 @@
 #include <c10/util/Exception.h>
 #include <flag_gems/operators.h>
 
+#ifdef USE_NPU
+#include "csrc/aten/npu_adapter/op_preparation.h"
+#include "csrc/aten/npu_adapter/op_api_common.h"
+#endif
+
 namespace at::native::flagos {
 
 FLAGOS_DEFINE_DISPATCH(MmFn, mm_stub, "mm")
@@ -75,5 +80,18 @@ void MmKernelCuda(
 
 FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kFlagOs, MmKernelFlaggems)
 FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kCuda,   MmKernelCuda)
+
+#ifdef USE_NPU
+void MmKernelNpu(
+    const at::Tensor& self,
+    const at::Tensor& mat2,
+    at::Tensor& out) {
+  namespace npu = at::native::flagos::npu;
+  int8_t cube_math_type = npu::OpPreparation::get_cube_math_type(false);
+  EXEC_NPU_CMD(aclnnMm, self, mat2, out, cube_math_type);
+}
+
+FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kNpu, MmKernelNpu)
+#endif
 
 } // namespace at::native::flagos
