@@ -107,13 +107,17 @@ class TestLogSoftmaxCStub:
         result = subprocess.run(
             [sys.executable, "-c", code], env=env, capture_output=True, text=True
         )
-        assert result.returncode == 0, f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        assert result.returncode == 0, (
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
 
     def test_dispatch_log_cuda(self):
-        result = _run_log_softmax_subprocess({
-            "FLAGOS_DISABLE_FLAGGEMS_PY": "1",
-            "FLAGOS_LOG_DISPATCH": "1",
-            "FLAGOS_OP__log_softmax": "cuda",
-        })
+        result = _run_log_softmax_subprocess(
+            {
+                "FLAGOS_DISABLE_FLAGGEMS_PY": "1",
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP__log_softmax": "cuda",
+            }
+        )
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] _log_softmax -> cuda" in result.stderr

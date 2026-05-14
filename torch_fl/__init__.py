@@ -257,6 +257,7 @@ def _register_composite_ops():
     already registered (like slice_scatter).
     """
     import os
+
     lib = torch.library.Library("aten", "IMPL")
 
     # slice_backward: used by autograd for tensor slicing (x[..., :n])
@@ -285,6 +286,7 @@ def _register_composite_ops():
     # Skip when FLAGOS_DISABLE_FLAGGEMS_PY=1 so the C++ stub registration in
     # register.cc (m.impl("_log_softmax", WrapperLogSoftmax)) is exercised.
     if os.environ.get("FLAGOS_DISABLE_FLAGGEMS_PY", "0") != "1":
+
         def log_softmax_impl(self, dim, half_to_float=False):
             dtype = torch.float32 if half_to_float else self.dtype
             out = torch.softmax(self.to(torch.float32), dim=dim)
@@ -293,7 +295,9 @@ def _register_composite_ops():
 
         def log_softmax_backward_impl(grad_output, output, dim, input_dtype):
             exp_output = torch.exp(output)
-            grad_input = grad_output - exp_output * grad_output.sum(dim=dim, keepdim=True)
+            grad_input = grad_output - exp_output * grad_output.sum(
+                dim=dim, keepdim=True
+            )
             return grad_input.to(input_dtype)
 
         lib.impl("_log_softmax", log_softmax_impl, "PrivateUse1")
