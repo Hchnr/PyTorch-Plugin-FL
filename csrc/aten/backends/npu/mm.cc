@@ -3,8 +3,8 @@
 #include "../../../mm.h"
 
 #include <ATen/core/Tensor.h>
-#include "csrc/aten/npu_adapter/op_preparation.h"
-#include "csrc/aten/npu_adapter/op_api_common.h"
+#include "op_preparation.h"
+#include "op_api_common.h"
 
 namespace at::native::flagos {
 
