@@ -6,7 +6,7 @@
 #include <ATen/native/TensorIterator.h>
 #include <c10/core/Scalar.h>
 
-#include "native/cuda/Loops.cuh"
+#include "native/Loops.cuh"
 
 namespace at::native::flagos {
 

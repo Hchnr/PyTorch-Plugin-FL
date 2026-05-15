@@ -5,7 +5,7 @@
 #include <ATen/Dispatch.h>
 #include <ATen/native/TensorIterator.h>
 
-#include "native/cuda/Loops.cuh"
+#include "native/Loops.cuh"
 
 namespace at::native::flagos {
 
