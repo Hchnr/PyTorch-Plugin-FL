@@ -14,10 +14,10 @@ list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/runtime/accelerator/.*")
 
 # Exclude backend kernel directories based on options
 if(NOT CUDA_KERNEL)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/vendors/cuda/.*")
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/cuda/.*")
 endif()
 if(NOT FLAGGEMS_KERNEL)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/flaggems/.*")
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/flagos/.*")
 endif()
 if(NOT NPU_KERNEL)
   list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/vendors/npu/.*")
