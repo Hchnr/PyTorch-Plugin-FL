@@ -1,9 +1,9 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../constant_pad_nd.h"
+#include "../../constant_pad_nd.h"
 
 #include <ATen/ops/constant_pad_nd_native.h>
-#include "../../../device_boxing.h"
+#include "../../device_boxing.h"
 
 namespace at::native::flagos {
 

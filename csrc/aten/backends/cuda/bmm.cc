@@ -1,6 +1,6 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../bmm.h"
+#include "../../bmm.h"
 
 #include <ATen/core/Tensor.h>
 #include <ATen/native/Resize.h>

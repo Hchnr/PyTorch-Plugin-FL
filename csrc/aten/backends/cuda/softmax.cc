@@ -1,11 +1,11 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../softmax.h"
+#include "../../softmax.h"
 
 #include <ATen/ops/_softmax_meta.h>
 #include <ATen/ops/_softmax_native.h>
 
-#include "../../../device_boxing.h"
+#include "../../device_boxing.h"
 
 namespace at::native::flagos {
 

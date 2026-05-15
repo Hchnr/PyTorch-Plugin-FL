@@ -1,10 +1,10 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../index.h"
+#include "../../index.h"
 
 #include <ATen/ops/index.h>
 
-#include "../../../device_boxing.h"
+#include "../../device_boxing.h"
 
 namespace at::native::flagos {
 

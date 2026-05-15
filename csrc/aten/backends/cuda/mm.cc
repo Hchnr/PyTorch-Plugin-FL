@@ -1,6 +1,6 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../mm.h"
+#include "../../mm.h"
 
 #include <ATen/core/Tensor.h>
 #include <ATen/native/Resize.h>

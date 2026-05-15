@@ -1,6 +1,6 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../rsqrt.h"
+#include "../../rsqrt.h"
 
 #include <ATen/Dispatch.h>
 #include <ATen/native/TensorIterator.h>

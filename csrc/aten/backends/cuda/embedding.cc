@@ -1,6 +1,6 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
-#include "../../../embedding.h"
+#include "../../embedding.h"
 
 #include <ATen/ops/embedding_compositeexplicitautograd_dispatch.h>
 
