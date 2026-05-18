@@ -106,6 +106,13 @@ def build_deps():
 
     cmake_args.append(f"-DACCELERATOR={ACCELERATOR}")
 
+    # Kernel build options from environment
+    for kernel_opt in ("FLAGGEMS_KERNEL", "CUDA_KERNEL", "NPU_KERNEL"):
+        val = os.environ.get(kernel_opt)
+        if val is not None:
+            cmake_val = "ON" if val not in ("0", "OFF", "off", "false", "FALSE") else "OFF"
+            cmake_args.append(f"-D{kernel_opt}={cmake_val}")
+
     # FlagGems C++ library path (optional, enables low-overhead C++ dispatch)
     flaggems_dir = os.environ.get("FLAGGEMS_DIR")
     if flaggems_dir:

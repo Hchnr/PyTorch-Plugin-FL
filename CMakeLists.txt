@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda, maca, or npu")
 
+# Kernel build options (can be overridden via -D flags from setup.py)
+option(CUDA_KERNEL "Build CUDA kernel implementations" ON)
+option(FLAGGEMS_KERNEL "Build FlagGems kernel implementations" ON)
+option(NPU_KERNEL "Build NPU kernel implementations" OFF)
+
 if(ACCELERATOR STREQUAL "npu")
   project(TORCH_FLAGOS CXX C)
 elseif(ACCELERATOR STREQUAL "maca")
@@ -110,21 +115,23 @@ endif()
 
 find_package(Torch REQUIRED)
 
-# Allow override via env var, otherwise try the installed flag_gems package
-if(NOT FLAGGEMS_DIR)
-  set(FLAGGEMS_DIR "$ENV{FLAGGEMS_DIR}")
-endif()
-if(NOT FLAGGEMS_DIR)
-  set(FLAGGEMS_DIR "/root/miniconda3/envs/pytorch/lib/python3.12/site-packages/flag_gems/lib/cmake/FlagGems")
-endif()
-# FlagGemsConfig.cmake calls find_dependency(Torch MODULE), which needs FindTorch.cmake in MODULE_PATH
-list(APPEND CMAKE_MODULE_PATH "${FLAGGEMS_DIR}")
-find_package(FlagGems REQUIRED PATHS "${FLAGGEMS_DIR}" NO_DEFAULT_PATH)
+if(FLAGGEMS_KERNEL)
+  # Allow override via env var, otherwise try the installed flag_gems package
+  if(NOT FLAGGEMS_DIR)
+    set(FLAGGEMS_DIR "$ENV{FLAGGEMS_DIR}")
+  endif()
+  if(NOT FLAGGEMS_DIR)
+    set(FLAGGEMS_DIR "/root/miniconda3/envs/pytorch/lib/python3.12/site-packages/flag_gems/lib/cmake/FlagGems")
+  endif()
+  # FlagGemsConfig.cmake calls find_dependency(Torch MODULE), which needs FindTorch.cmake in MODULE_PATH
+  list(APPEND CMAKE_MODULE_PATH "${FLAGGEMS_DIR}")
+  find_package(FlagGems REQUIRED PATHS "${FLAGGEMS_DIR}" NO_DEFAULT_PATH)
 
-# Embed liboperators.so dir into RPATH so it's found at runtime without LD_LIBRARY_PATH
-# FLAGGEMS_DIR is .../flag_gems/lib/cmake/FlagGems; liboperators.so is at .../flag_gems/lib/
-get_filename_component(_flaggems_libdir "${FLAGGEMS_DIR}/../.." ABSOLUTE)
-list(APPEND CMAKE_INSTALL_RPATH "${_flaggems_libdir}")
+  # Embed liboperators.so dir into RPATH so it's found at runtime without LD_LIBRARY_PATH
+  # FLAGGEMS_DIR is .../flag_gems/lib/cmake/FlagGems; liboperators.so is at .../flag_gems/lib/
+  get_filename_component(_flaggems_libdir "${FLAGGEMS_DIR}/../.." ABSOLUTE)
+  list(APPEND CMAKE_INSTALL_RPATH "${_flaggems_libdir}")
+endif()
 
 if(DEFINED PYTHON_INCLUDE_DIR)
   include_directories(${PYTHON_INCLUDE_DIR})
