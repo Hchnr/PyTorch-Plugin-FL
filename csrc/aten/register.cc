@@ -11,6 +11,10 @@
 #include "contiguous_ops.h"
 #include "fallback.h"
 #include "mm.h"
+
+// NPU development: only register implemented ops above.
+// Unregistered ops fall through to WrapperCpuFallback automatically.
+#ifndef USE_NPU
 #include "bmm.h"
 #include "cat.h"
 #include "embedding.h"
@@ -39,6 +43,7 @@
 #include "constant_pad_nd.h"
 #include "embedding_dense_backward.h"
 #include "nll_loss.h"
+#endif // USE_NPU
 
 #include <ATen/native/CPUFallback.h>
 
@@ -183,6 +188,7 @@ at::Tensor& WrapperMmOut(const at::Tensor& self, const at::Tensor& mat2, at::Ten
   return out;
 }
 
+#ifndef USE_NPU
 at::Tensor WrapperBmm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), self.size(1), mat2.size(2)}, self.options());
   at::native::flagos::StructuredBmmOutFlagos op(out);
@@ -353,6 +359,7 @@ at::Tensor WrapperNllLossBackward(
   return at::native::flagos::nll_loss_backward_stub(
       grad_output, self, target, weight, reduction, ignore_index, total_weight);
 }
+#endif // USE_NPU
 
 } // namespace
 
@@ -378,6 +385,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("record_stream", WrapperRecordStream);
   m.impl("mm", WrapperMm);
   m.impl("mm.out", WrapperMmOut);
+#ifndef USE_NPU
   m.impl("bmm", WrapperBmm);
   m.impl("bmm.out", WrapperBmmOut);
   m.impl("cat", WrapperCat);
@@ -408,6 +416,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("embedding_dense_backward", WrapperEmbeddingDenseBackward);
   m.impl("nll_loss_forward", WrapperNllLossForward);
   m.impl("nll_loss_backward", WrapperNllLossBackward);
+#endif // USE_NPU
 }
 
 // Register fallback for all unimplemented operators
