@@ -39,9 +39,15 @@ if(ACCELERATOR STREQUAL "npu")
   find_library(OPAPI_LIB opapi
       PATHS $ENV{ASCEND_HOME}/lib64
             /usr/local/Ascend/ascend-toolkit/latest/lib64)
+  find_library(NNOPBASE_LIB nnopbase
+      PATHS $ENV{ASCEND_HOME}/lib64
+            /usr/local/Ascend/ascend-toolkit/latest/lib64)
   target_link_libraries(${LIBRARY_NAME} PRIVATE ${_LINK_LIBS})
   if(OPAPI_LIB)
     target_link_libraries(${LIBRARY_NAME} PRIVATE ${OPAPI_LIB})
+  endif()
+  if(NNOPBASE_LIB)
+    target_link_libraries(${LIBRARY_NAME} PRIVATE ${NNOPBASE_LIB})
   endif()
 else()
   target_link_libraries(${LIBRARY_NAME} PRIVATE ${_LINK_LIBS})

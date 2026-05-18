@@ -14,7 +14,12 @@ void MmKernelNpu(
     at::Tensor& out) {
   namespace npu = at::native::flagos::npu;
   int8_t cube_math_type = npu::OpPreparation::get_cube_math_type(false);
-  EXEC_NPU_CMD(aclnnMm, self, mat2, out, cube_math_type);
+
+  npu::AclTensorWrapper acl_self(self);
+  npu::AclTensorWrapper acl_mat2(mat2);
+  npu::AclTensorWrapper acl_out(out);
+
+  EXEC_NPU_CMD(aclnnMm, acl_self.get(), acl_mat2.get(), acl_out.get(), cube_math_type);
 }
 
 FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kNpu, MmKernelNpu)

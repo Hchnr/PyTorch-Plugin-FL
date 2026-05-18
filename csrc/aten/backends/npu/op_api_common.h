@@ -4,16 +4,77 @@
 
 #include <include/flagos.h>
 
+#include <ATen/ATen.h>
 #include <dlfcn.h>
 #include <stdexcept>
 #include <cstdint>
+#include <vector>
 
-typedef void aclOpExecutor;
-typedef void* aclrtStream;
+#include <acl/acl_base_rt.h>
+#include <aclnn/acl_meta.h>
 
 namespace at::native::flagos::npu {
 
+inline aclDataType ToAclDataType(at::ScalarType type) {
+  switch (type) {
+    case at::kFloat:   return ACL_FLOAT;
+    case at::kHalf:    return ACL_FLOAT16;
+    case at::kBFloat16: return ACL_BF16;
+    case at::kInt:     return ACL_INT32;
+    case at::kLong:    return ACL_INT64;
+    case at::kShort:   return ACL_INT16;
+    case at::kChar:    return ACL_INT8;
+    case at::kByte:    return ACL_UINT8;
+    default:
+      TORCH_CHECK(false, "Unsupported dtype for ACL: ", type);
+  }
+}
+
+struct AclTensorWrapper {
+  aclTensor* acl_tensor = nullptr;
+
+  AclTensorWrapper(const at::Tensor& tensor) {
+    if (!tensor.defined()) {
+      acl_tensor = nullptr;
+      return;
+    }
+
+    auto sizes = tensor.sizes();
+    auto strides = tensor.strides();
+    int64_t offset = tensor.storage_offset();
+    aclDataType dtype = ToAclDataType(tensor.scalar_type());
+    aclFormat format = ACL_FORMAT_ND;
+
+    int64_t storage_size = static_cast<int64_t>(
+        tensor.storage().nbytes() / tensor.element_size());
+    std::vector<int64_t> storage_dims = {storage_size};
+
+    void* storage_ptr = const_cast<void*>(tensor.storage().data());
+
+    acl_tensor = aclCreateTensor(
+        sizes.data(),
+        static_cast<uint64_t>(sizes.size()),
+        dtype,
+        strides.data(),
+        offset,
+        format,
+        storage_dims.data(),
+        static_cast<uint64_t>(storage_dims.size()),
+        storage_ptr);
+  }
+
+  ~AclTensorWrapper() {
+    if (acl_tensor) {
+      aclDestroyTensor(acl_tensor);
+    }
+  }
+
+  const aclTensor* get() const { return acl_tensor; }
+};
+
 inline aclrtStream GetCurrentAclStream() {
+  // After aclrtSetDevice, ACL provides an implicit default stream.
+  // nullptr tells ACL to use the default stream on the current device.
   return nullptr;
 }
 
@@ -81,3 +142,4 @@ inline void GetApiFunc(const char* api_name, const char* workspace_name,
       ::Free(workspace_addr);                                                 \
     }                                                                         \
   } while (false)
+
