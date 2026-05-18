@@ -5,8 +5,8 @@ A custom PyTorch device plugin based on the PrivateUse1 extension mechanism, reg
 ## Features
 
 - Automatically registers FlagGems Triton operators as dispatch implementations for the `flagos` device
-- Configurable backend routing: select FlagGems or native vendor backend (CUDA/MACA) at per-operator granularity
-- Currently supports CUDA and MACA (MetaX) hardware platforms
+- Configurable backend routing: select FlagGems or native vendor backend (CUDA/MACA/NPU) at per-operator granularity
+- Currently supports CUDA, MACA (MetaX), and Ascend NPU hardware platforms
 - Complete device management API (stream, event, RNG, AMP)
 ## Requirements
 
@@ -26,8 +26,10 @@ A custom PyTorch device plugin based on the PrivateUse1 extension mechanism, reg
 - Hardware Runtime Dependencies:
     - CUDA toolkit 12.8 (required only on CUDA platform)
     - MACA cu-bridge library (required only on MACA platform)
+    - CANN toolkit (required only on Ascend NPU platform)
 - PyTorch 2.11.0
 - FlagGems (version 5.0.2 or higher, requires DFLAGGEMS_BUILD_C_EXTENSIONS enabled). For source installation, refer to: [FlagGems Installation](https://flagos-ai.github.io/FlagGems/getting-started/install/)
+  - Note: FlagGems is optional on Ascend NPU platform
 
 ### Build from Source (CUDA Platform)
 
@@ -46,22 +48,38 @@ export LD_LIBRARY_PATH=/opt/maca/tools/cu-bridge/lib:$LD_LIBRARY_PATH
 ACCELERATOR=maca pip install -e . --no-build-isolation
 ```
 
+### Build from Source (Ascend NPU Platform)
+
+```bash
+# Ensure CANN toolkit is installed and environment is sourced
+# (typically: source /usr/local/Ascend/ascend-toolkit/set_env.sh)
+
+ACCELERATOR=npu FLAGGEMS_KERNEL=0 CUDA_KERNEL=0 NPU_KERNEL=1 \
+  pip install --no-build-isolation -vvv -e .
+```
+
+On Ascend, FlagGems and CUDA kernels are disabled. Only the NPU kernel backend (ACL NN API) is compiled.
+
 ### Build Environment Variables
 
 | Variable | Description |
 |----------|-------------|
-| `ACCELERATOR` | Hardware platform, `cuda` (default) or `maca` |
+| `ACCELERATOR` | Hardware platform: `cuda` (default), `maca`, or `npu` |
 | `CUDA_HOME` | CUDA toolkit path |
 | `MACA_PATH` | MACA SDK path (default `/opt/maca`) |
+| `ASCEND_HOME` | CANN toolkit path (default `/usr/local/Ascend/ascend-toolkit/latest`) |
 | `FLAGGEMS_DIR` | FlagGems C++ library path (enables low-overhead C++ dispatch) |
+| `FLAGGEMS_KERNEL` | Enable FlagGems kernel build (`ON`/`OFF`, default `ON`; set `0` for NPU) |
+| `CUDA_KERNEL` | Enable CUDA kernel build (`ON`/`OFF`, default `ON`; set `0` for NPU) |
+| `NPU_KERNEL` | Enable NPU kernel build (`ON`/`OFF`, default `OFF`; set `1` for Ascend) |
 
 ### Runtime Environment Variables
 
 | Variable | Description |
 |----------|-------------|
-| `FLAGOS_DISABLE_FLAGGEMS_PY` | Set to `1` to disable FlagGems Python-layer registration (C++ stub-only mode) |
+| `FLAGOS_DISABLE_FLAGGEMS_PY` | Set to `1` to disable FlagGems Python-layer registration (required on Ascend NPU) |
 | `FLAGGEMS_SOURCE_DIR` | FlagGems source directory (required when C++ native API ops route to `flaggems` backend) |
-| `FLAGOS_BACKEND_CONFIG` | Override path for `backends.conf` |
+| `FLAGOS_BACKEND_CONFIG` | Override path for `backends.conf` (use `torch_fl/backends_npu.conf` on Ascend) |
 | `FLAGOS_LOG_DISPATCH` | Set to `1` to print backend selection for each operator dispatch |
 | `FLAGOS_OP_<name>` | Per-operator backend override (replace `.` with `__` in op names) |
 
@@ -194,6 +212,10 @@ pytest tests/integration/test_qwen3_infer.py -v -s --device flagos
 # Qwen3 training (single GPU)
 pytest tests/integration/test_qwen3_train.py -v -s --device cuda --steps 10
 pytest tests/integration/test_qwen3_train.py -v -s --device flagos --steps 10
+
+# Ascend NPU operator tests
+FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_npu.conf \
+  pytest tests/integration/test_ops.py -v --device flagos
 ```
 
 ## Project Structure
@@ -203,7 +225,8 @@ PyTorch-Plugin-FL/
 ├── accelerator/              # Hardware abstraction layer
 │   ├── include/flagos.h      #   Unified runtime API (memory, stream, device)
 │   ├── csrc/cuda/            #   CUDA runtime implementation
-│   └── csrc/maca/            #   MACA cudart shim (symbol version compatibility)
+│   ├── csrc/maca/            #   MACA cudart shim (symbol version compatibility)
+│   └── csrc/npu/             #   Ascend NPU runtime (ACL-based memory, stream, device)
 ├── csrc/
 │   ├── aten/                 # ATen operator layer
 │   │   ├── common.{h,cc}    #   Backend config loading, FlagosDevice enum
@@ -212,6 +235,7 @@ PyTorch-Plugin-FL/
 │   │   ├── register.cc       #   PrivateUse1 dispatch key registration
 │   │   ├── factory_ops/      #   Basic operators (empty, copy, contiguous, set, fallback)
 │   │   ├── functional_ops/   #   Compute operators (mm, bmm, cat, embedding, softmax, etc.)
+│   │   ├── backends/vendors/npu/  # NPU kernel implementations (ACL NN API)
 │   │   └── native/cuda/      #   Modified CUDA kernels (Loops.cuh with relaxed device checks)
 │   └── runtime/              # Device runtime
 │       ├── device_allocator  #   Device memory allocator
@@ -221,6 +245,7 @@ PyTorch-Plugin-FL/
 ├── torch_fl/
 │   ├── __init__.py           # Plugin entry point: register device, load FlagGems operators
 │   ├── flagos/               # Python device module (stream, event, RNG, AMP)
+│   ├── backends_npu.conf     # NPU backend routing config (all ops → npu)
 │   ├── distributed.py        # Distributed training support (DDP patch)
 │   ├── integration.py        # FlagGems operator registration logic
 │   └── csrc/                 # C extension (module.cc, stub.c)
@@ -234,29 +259,29 @@ PyTorch-Plugin-FL/
 ## Architecture Overview
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  Python: import torch_fl                             │
-│  ┌────────────────┐  ┌────────────────────────────┐  │
-│  │ torch_fl.flagos│  │ torch_fl.distributed       │  │
-│  │ (device API)   │  │ (DDP/FSDP patch)           │  │
-│  └────────────────┘  └────────────────────────────┘  │
-├──────────────────────────────────────────────────────┤
-│  PrivateUse1 Dispatch                                │
-│  ┌─────────────┐  ┌──────────────┐  ┌───────────┐    │
-│  │ FlagGems    │  │ CUDA backend │  │ CPU       │    │
-│  │ (Triton)    │  │ (native)     │  │ fallback  │    │
-│  └─────────────┘  └──────────────┘  └───────────┘    │
-├──────────────────────────────────────────────────────┤
-│  C++ Runtime (csrc/)                                 │
-│  ┌──────────┐ ┌────────┐ ┌───────┐ ┌───────────┐     │
-│  │Allocator │ │ Guard  │ │ RNG   │ │ Hooks     │     │
-│  └──────────┘ └────────┘ └───────┘ └───────────┘     │
-├──────────────────────────────────────────────────────┤
-│  Hardware Abstraction (accelerator/)                 │
-│  ┌──────────────────┐  ┌─────────────────────────┐   │
-│  │ CUDA Runtime     │  │ MACA cu-bridge + shim   │   │
-│  └──────────────────┘  └─────────────────────────┘   │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  Python: import torch_fl                                     │
+│  ┌────────────────┐  ┌────────────────────────────┐          │
+│  │ torch_fl.flagos│  │ torch_fl.distributed       │          │
+│  │ (device API)   │  │ (DDP/FSDP patch)           │          │
+│  └────────────────┘  └────────────────────────────┘          │
+├──────────────────────────────────────────────────────────────┤
+│  PrivateUse1 Dispatch                                        │
+│  ┌─────────────┐  ┌──────────┐  ┌───────────┐  ┌────────┐    │
+│  │ FlagGems    │  │ CUDA     │  │ NPU       │  │ CPU    │    │
+│  │ (Triton)    │  │ (native) │  │ (ACL NN)  │  │fallback│    │
+│  └─────────────┘  └──────────┘  └───────────┘  └────────┘    │
+├──────────────────────────────────────────────────────────────┤
+│  C++ Runtime (csrc/)                                         │
+│  ┌──────────┐ ┌────────┐ ┌───────┐ ┌───────────┐             │
+│  │Allocator │ │ Guard  │ │ RNG   │ │ Hooks     │             │
+│  └──────────┘ └────────┘ └───────┘ └───────────┘             │
+├──────────────────────────────────────────────────────────────┤
+│  Hardware Abstraction (accelerator/)                         │
+│  ┌──────────────┐  ┌─────────────────────┐  ┌────────────┐   │
+│  │ CUDA Runtime │  │ MACA cu-bridge+shim │  │ Ascend ACL │   │
+│  └──────────────┘  └─────────────────────┘  └────────────┘   │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ## License
