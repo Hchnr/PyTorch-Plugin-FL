@@ -102,6 +102,30 @@ inline void GetApiFunc(const char* api_name, const char* workspace_name,
   }
 }
 
+struct AclScalarWrapper {
+  aclScalar* acl_scalar = nullptr;
+
+  AclScalarWrapper(const at::Scalar& scalar, at::ScalarType dtype) {
+    if (scalar.isFloatingPoint()) {
+      double val = scalar.toDouble();
+      acl_scalar = aclCreateScalar(&val, ToAclDataType(dtype));
+    } else if (scalar.isIntegral(false)) {
+      int64_t val = scalar.toLong();
+      acl_scalar = aclCreateScalar(&val, ToAclDataType(dtype));
+    } else {
+      TORCH_CHECK(false, "Unsupported scalar type for ACL");
+    }
+  }
+
+  ~AclScalarWrapper() {
+    if (acl_scalar) {
+      aclDestroyScalar(acl_scalar);
+    }
+  }
+
+  const aclScalar* get() const { return acl_scalar; }
+};
+
 } // namespace at::native::flagos::ascend
 
 #define EXEC_ASCEND_CMD(aclnn_api, ...)                                       \
