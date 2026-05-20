@@ -123,8 +123,8 @@ class TestMmDispatch:
 class TestMmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
-    def test_dispatch_log_flagos_default(self):
-        """Default config routes mm to flagos."""
+    def test_dispatch_log_flagos_flaggems_override(self):
+        """FLAGOS_OP_mm=flaggems routes mm to flagos backend."""
         result = _run_mm_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mm": "flaggems"}
         )
@@ -141,8 +141,8 @@ class TestMmDispatchLog:
             f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
 
-    def test_dispatch_log_mm_out_flagos_default(self):
-        """Default config routes mm.out to flagos."""
+    def test_dispatch_log_mm_out_flagos_flaggems_override(self):
+        """FLAGOS_OP_mm__out=flaggems routes mm.out to flagos backend."""
         result = _run_mm_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mm__out": "flaggems"},
             use_out=True,
