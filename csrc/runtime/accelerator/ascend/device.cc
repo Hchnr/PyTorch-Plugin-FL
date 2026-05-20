@@ -12,7 +12,7 @@ bool ensureAclInit() {
   static bool initialized = []() {
     aclError err = aclInit(nullptr);
     if (err != ACL_SUCCESS && err != ACL_ERROR_REPEAT_INITIALIZE) {
-      fprintf(stderr, "[flagos-npu] aclInit failed: %d\n", static_cast<int>(err));
+      fprintf(stderr, "[flagos-ascend] aclInit failed: %d\n", static_cast<int>(err));
       return false;
     }
     return true;
@@ -29,14 +29,14 @@ Error_t GetDeviceCount(int* count) {
 
   ensureAclInit();
 
-  uint32_t npu_count = 0;
-  aclError err = aclrtGetDeviceCount(&npu_count);
+  uint32_t ascend_count = 0;
+  aclError err = aclrtGetDeviceCount(&ascend_count);
   if (err != ACL_SUCCESS) {
     *count = 0;
     return ErrorUnknown;
   }
 
-  *count = static_cast<int>(npu_count);
+  *count = static_cast<int>(ascend_count);
   return Success;
 }
 

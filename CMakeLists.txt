@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda, maca, or npu")
+set(ACCELERATOR "cuda" CACHE STRING "Accelerator platform: cuda, maca, or ascend")
 
 # Kernel build options (can be overridden via -D flags from setup.py)
 option(CUDA_KERNEL "Build CUDA kernel implementations" ON)
 option(FLAGGEMS_KERNEL "Build FlagGems kernel implementations" ON)
-option(NPU_KERNEL "Build NPU kernel implementations" OFF)
+option(ASCEND_KERNEL "Build Ascend kernel implementations" OFF)
 
-if(ACCELERATOR STREQUAL "npu")
+if(ACCELERATOR STREQUAL "ascend")
   project(TORCH_FLAGOS CXX C)
 elseif(ACCELERATOR STREQUAL "maca")
   project(TORCH_FLAGOS CXX C)
@@ -42,7 +42,7 @@ set(CMAKE_INSTALL_MESSAGE NEVER)
 
 set(Torch_DIR ${PYTORCH_INSTALL_DIR}/share/cmake/Torch)
 
-if(ACCELERATOR STREQUAL "npu")
+if(ACCELERATOR STREQUAL "ascend")
   # Huawei CANN SDK
   if(NOT ASCEND_HOME)
     set(ASCEND_HOME "$ENV{ASCEND_HOME}")
@@ -52,7 +52,7 @@ if(ACCELERATOR STREQUAL "npu")
   endif()
   message(STATUS "Huawei CANN SDK path: ${ASCEND_HOME}")
 
-  set(NPU_KERNEL ON CACHE BOOL "Build NPU kernel implementations" FORCE)
+  set(ASCEND_KERNEL ON CACHE BOOL "Build Ascend kernel implementations" FORCE)
   set(CUDA_KERNEL OFF CACHE BOOL "Build CUDA kernel implementations" FORCE)
 
   add_library(cuda_runtime_compat INTERFACE IMPORTED)

@@ -23,7 +23,7 @@ at::Tensor _copy_from(
 
   // Both flagos tensors: copy on-device.
   if (self.is_privateuseone() && dst.is_privateuseone()) {
-#ifdef USE_NPU
+#ifdef USE_ASCEND
     // On Ascend there is no CUDA runtime, so we cannot box to CUDA and use
     // TensorIterator's CUDA copy kernel.  Instead, for contiguous same-shape
     // tensors we memcpy directly; otherwise we round-trip through CPU.
@@ -74,7 +74,7 @@ at::Tensor _copy_from(
     } else {
       auto tmp = at::empty(self_contig.sizes(), dst.options());
       Memcpy(tmp.data_ptr(), self_contig.data_ptr(), nbytes, MemcpyHostToDevice);
-#ifdef USE_NPU
+#ifdef USE_ASCEND
       at::native::flagos::_copy_from(tmp, dst, false);
 #else
       DeviceBoxingGuard guard(tmp, dst);
@@ -103,7 +103,7 @@ at::Tensor _copy_from(
     } else {
       auto tmp = at::empty(self_contig.sizes(), dst.options());
       Memcpy(tmp.data_ptr(), self_contig.data_ptr(), nbytes, MemcpyDeviceToDevice);
-#ifdef USE_NPU
+#ifdef USE_ASCEND
       at::native::flagos::_copy_from(tmp, dst, false);
 #else
       DeviceBoxingGuard guard(tmp, dst);

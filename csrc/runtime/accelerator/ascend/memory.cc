@@ -34,14 +34,14 @@ class MemoryManager {
 
       aclError set_err = aclrtSetDevice(current_device);
       if (set_err != ACL_SUCCESS) {
-        fprintf(stderr, "[flagos-npu] aclrtSetDevice(%d) failed: %d\n",
+        fprintf(stderr, "[flagos-ascend] aclrtSetDevice(%d) failed: %d\n",
                 current_device, static_cast<int>(set_err));
         return ErrorMemoryAllocation;
       }
 
       aclError err = aclrtMalloc(&mem, size, ACL_MEM_MALLOC_HUGE_FIRST);
       if (err != ACL_SUCCESS || mem == nullptr) {
-        fprintf(stderr, "[flagos-npu] aclrtMalloc(%zu bytes) on device %d failed: %d\n",
+        fprintf(stderr, "[flagos-ascend] aclrtMalloc(%zu bytes) on device %d failed: %d\n",
                 size, current_device, static_cast<int>(err));
         return ErrorMemoryAllocation;
       }

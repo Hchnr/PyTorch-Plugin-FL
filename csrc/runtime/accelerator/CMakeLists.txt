@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-if(ACCELERATOR STREQUAL "npu")
+if(ACCELERATOR STREQUAL "ascend")
   project(FLAGOS_RUNTIME CXX C)
 elseif(ACCELERATOR STREQUAL "maca")
   project(FLAGOS_RUNTIME CXX C)
@@ -10,9 +10,9 @@ endif()
 
 set(LIBRARY_NAME flagos)
 
-if(ACCELERATOR STREQUAL "npu")
+if(ACCELERATOR STREQUAL "ascend")
   file(GLOB_RECURSE SOURCE_FILES
-      "${CMAKE_CURRENT_SOURCE_DIR}/npu/*.cc"
+      "${CMAKE_CURRENT_SOURCE_DIR}/ascend/*.cc"
   )
 
   add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})

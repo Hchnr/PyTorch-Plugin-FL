@@ -5,8 +5,8 @@
 ## 特性
 
 - 自动将 FlagGems Triton 算子注册为 `flagos` 设备的 dispatch 实现
-- 可配置的后端路由：按算子粒度选择 FlagGems 或 原始的厂商后端（CUDA/MACA/NPU）
-- 目前支持 CUDA、MACA (MetaX) 和 NPU (Ascend) 三种硬件平台
+- 可配置的后端路由：按算子粒度选择 FlagGems 或 原始的厂商后端（CUDA/MACA/Ascend）
+- 目前支持 CUDA、MACA (MetaX) 和 Ascend 三种硬件平台
 - 完整的设备管理 API（stream、event、RNG、AMP）
 
 

@@ -8,7 +8,7 @@
 
 namespace at::native::flagos {
 
-void StructuredMmOutFlagos::set_output_strided(
+void StructuredMmOut::set_output_strided(
     int64_t output_idx,
     at::IntArrayRef sizes,
     at::IntArrayRef strides,
@@ -20,7 +20,7 @@ void StructuredMmOutFlagos::set_output_strided(
   }
 }
 
-void StructuredMmOutFlagos::set_output_raw_strided(
+void StructuredMmOut::set_output_raw_strided(
     int64_t output_idx,
     at::IntArrayRef sizes,
     at::IntArrayRef strides,
@@ -32,11 +32,11 @@ void StructuredMmOutFlagos::set_output_raw_strided(
   }
 }
 
-const at::Tensor& StructuredMmOutFlagos::maybe_get_output(int64_t) {
+const at::Tensor& StructuredMmOut::maybe_get_output(int64_t) {
   return out_;
 }
 
-void StructuredMmOutFlagos::impl(const at::Tensor& self, const at::Tensor& mat2, const std::string& op_name) {
+void StructuredMmOut::impl(const at::Tensor& self, const at::Tensor& mat2, const std::string& op_name) {
   mm_stub.DispatchAs(op_name, self, mat2, out_);
 }
 

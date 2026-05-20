@@ -5,7 +5,7 @@
 #include <ATen/ATen.h>
 #include <c10/core/DeviceType.h>
 
-namespace at::native::flagos::npu {
+namespace at::native::flagos::ascend {
 
 class OpPreparation {
  public:
@@ -37,4 +37,4 @@ class OpPreparation {
   }
 };
 
-} // namespace at::native::flagos::npu
+} // namespace at::native::flagos::ascend

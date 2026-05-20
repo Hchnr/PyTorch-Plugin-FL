@@ -2,7 +2,7 @@ set(LIBRARY_NAME torch_fl)
 
 option(CUDA_KERNEL "Build CUDA kernel implementations" ON)
 option(FLAGGEMS_KERNEL "Build FlagGems kernel implementations" ON)
-option(NPU_KERNEL "Build NPU kernel implementations" OFF)
+option(ASCEND_KERNEL "Build Ascend kernel implementations" OFF)
 
 file(GLOB_RECURSE SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
@@ -19,8 +19,8 @@ endif()
 if(NOT FLAGGEMS_KERNEL)
   list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/flagos/.*")
 endif()
-if(NOT NPU_KERNEL)
-  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/npu/.*")
+if(NOT ASCEND_KERNEL)
+  list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/ascend/.*")
 endif()
 
 add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})
@@ -34,8 +34,8 @@ if(FLAGGEMS_KERNEL)
   list(APPEND _LINK_LIBS FlagGems::operators)
 endif()
 
-if(ACCELERATOR STREQUAL "npu")
-  target_compile_definitions(${LIBRARY_NAME} PRIVATE USE_NPU=1)
+if(ACCELERATOR STREQUAL "ascend")
+  target_compile_definitions(${LIBRARY_NAME} PRIVATE USE_ASCEND=1)
   find_library(OPAPI_LIB opapi
       PATHS $ENV{ASCEND_HOME}/lib64
             /usr/local/Ascend/ascend-toolkit/latest/lib64)

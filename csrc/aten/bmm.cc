@@ -8,7 +8,7 @@
 
 namespace at::native::flagos {
 
-void StructuredBmmOutFlagos::set_output_strided(
+void StructuredBmmOut::set_output_strided(
     int64_t output_idx,
     at::IntArrayRef sizes,
     at::IntArrayRef strides,
@@ -20,7 +20,7 @@ void StructuredBmmOutFlagos::set_output_strided(
   }
 }
 
-void StructuredBmmOutFlagos::set_output_raw_strided(
+void StructuredBmmOut::set_output_raw_strided(
     int64_t output_idx,
     at::IntArrayRef sizes,
     at::IntArrayRef strides,
@@ -32,11 +32,11 @@ void StructuredBmmOutFlagos::set_output_raw_strided(
   }
 }
 
-const at::Tensor& StructuredBmmOutFlagos::maybe_get_output(int64_t) {
+const at::Tensor& StructuredBmmOut::maybe_get_output(int64_t) {
   return out_;
 }
 
-void StructuredBmmOutFlagos::impl(const at::Tensor& self, const at::Tensor& mat2, const std::string& op_name) {
+void StructuredBmmOut::impl(const at::Tensor& self, const at::Tensor& mat2, const std::string& op_name) {
   bmm_stub.DispatchAs(op_name, self, mat2, out_);
 }
 

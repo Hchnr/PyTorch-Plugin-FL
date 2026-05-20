@@ -13,7 +13,7 @@
 #include <acl/acl_base_rt.h>
 #include <aclnn/acl_meta.h>
 
-namespace at::native::flagos::npu {
+namespace at::native::flagos::ascend {
 
 inline aclDataType ToAclDataType(at::ScalarType type) {
   switch (type) {
@@ -102,17 +102,17 @@ inline void GetApiFunc(const char* api_name, const char* workspace_name,
   }
 }
 
-} // namespace at::native::flagos::npu
+} // namespace at::native::flagos::ascend
 
-#define EXEC_NPU_CMD(aclnn_api, ...)                                          \
+#define EXEC_ASCEND_CMD(aclnn_api, ...)                                       \
   do {                                                                        \
     static void* opApiFuncAddr = nullptr;                                     \
     static void* getWorkspaceSizeFuncAddr = nullptr;                          \
-    at::native::flagos::npu::GetApiFunc(                                      \
+    at::native::flagos::ascend::GetApiFunc(                                   \
         #aclnn_api, #aclnn_api "GetWorkspaceSize",                            \
         opApiFuncAddr, getWorkspaceSizeFuncAddr);                              \
                                                                               \
-    auto acl_stream = at::native::flagos::npu::GetCurrentAclStream();         \
+    auto acl_stream = at::native::flagos::ascend::GetCurrentAclStream();      \
                                                                               \
     uint64_t workspace_size = 0;                                              \
     aclOpExecutor* executor = nullptr;                                        \
