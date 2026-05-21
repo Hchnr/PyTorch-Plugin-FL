@@ -201,9 +201,15 @@ export FLAGOS_LOG_DISPATCH=1  # 打印每次算子 dispatch 的后端选择
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
   pytest tests/integration/ops/ -v
 
+<<<<<<< HEAD
 # Qwen3 推理测试
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
   pytest tests/integration/test_qwen3_infer.py -v -s
+=======
+# 基础算子测试
+pytest tests/integration/test_factory_ops.py -v --device cuda
+pytest tests/integration/test_factory_ops.py -v --device flagos
+>>>>>>> main
 
 # Qwen3 训练测试（单卡）
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
