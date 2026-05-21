@@ -39,6 +39,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestWhereCorrectness:
     """torch.where correctness on flagos device."""
 
@@ -76,6 +77,7 @@ class TestWhereCorrectness:
         assert out.device.type == "flagos"
 
 
+@pytest.mark.cuda
 class TestWhereDispatch:
     """Verify dispatch routing."""
 
@@ -93,3 +95,15 @@ class TestWhereDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestWhereAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify where.self on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_where__self": "ascend"}
+        )
+        assert result.returncode == 0

@@ -40,6 +40,7 @@ def _run_pow_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestPowTensorScalarCorrectness:
     """torch.pow(tensor, scalar) correctness on flagos device."""
 
@@ -93,6 +94,7 @@ class TestPowTensorScalarCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-6, atol=1e-6)
 
 
+@pytest.mark.cuda
 class TestPowTensorScalarDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -111,3 +113,15 @@ class TestPowTensorScalarDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestPowTensorScalarAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify pow.Tensor_Scalar on ascend backend matches CPU reference."""
+        result = _run_pow_subprocess(
+            {"FLAGOS_OP_pow__Tensor_Scalar": "ascend"}
+        )
+        assert result.returncode == 0

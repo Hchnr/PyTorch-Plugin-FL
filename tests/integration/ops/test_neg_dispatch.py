@@ -38,6 +38,7 @@ def _run_neg_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestNegCorrectness:
     """torch.neg correctness on flagos device."""
 
@@ -79,6 +80,7 @@ class TestNegCorrectness:
         assert out.dtype == dtype
 
 
+@pytest.mark.cuda
 class TestNegDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -106,6 +108,7 @@ class TestNegDispatch:
         assert "backend not registered" in result.stderr
 
 
+@pytest.mark.ascend
 class TestNegAscendDispatch:
     """Verify Ascend backend correctness."""
 

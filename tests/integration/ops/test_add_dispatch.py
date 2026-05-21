@@ -41,6 +41,7 @@ def _run_add_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestAddTensorCorrectness:
     """torch.add correctness on flagos device."""
 
@@ -82,6 +83,7 @@ class TestAddTensorCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.cuda
 class TestAddTensorDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -109,6 +111,7 @@ class TestAddTensorDispatch:
         assert "backend not registered" in result.stderr
 
 
+@pytest.mark.ascend
 class TestAddTensorAscendDispatch:
     """Verify Ascend backend correctness."""
 

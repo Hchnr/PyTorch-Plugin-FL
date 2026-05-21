@@ -38,6 +38,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestSiluBackwardCorrectness:
     """silu_backward correctness on flagos device."""
 
@@ -84,6 +85,7 @@ class TestSiluBackwardCorrectness:
         assert x.grad.shape == shape
 
 
+@pytest.mark.cuda
 class TestSiluBackwardDispatch:
     """Verify dispatch routing."""
 
@@ -101,3 +103,15 @@ class TestSiluBackwardDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestSiluBackwardAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify silu_backward on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_silu_backward": "ascend"}
+        )
+        assert result.returncode == 0

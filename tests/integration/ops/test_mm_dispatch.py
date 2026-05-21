@@ -67,6 +67,7 @@ def _run_mm_subprocess(
     return result
 
 
+@pytest.mark.anyplatform
 class TestMmDispatch:
     """torch.mm correctness and cross-device consistency."""
 
@@ -120,6 +121,7 @@ class TestMmDispatch:
         assert out.shape == (64, 32)
 
 
+@pytest.mark.cuda
 class TestMmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
@@ -181,6 +183,7 @@ class TestMmDispatchLog:
         )
 
 
+@pytest.mark.ascend
 class TestMmAscendDispatch:
     """Verify Ascend backend correctness."""
 

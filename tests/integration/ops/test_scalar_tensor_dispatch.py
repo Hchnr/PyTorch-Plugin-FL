@@ -33,6 +33,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestScalarTensorCorrectness:
     """torch.scalar_tensor correctness on flagos device."""
 
@@ -52,6 +53,7 @@ class TestScalarTensorCorrectness:
         assert out.item() == 0.0
 
 
+@pytest.mark.cuda
 class TestScalarTensorDispatch:
     """Verify dispatch routing."""
 
@@ -69,3 +71,15 @@ class TestScalarTensorDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestScalarTensorAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify scalar_tensor on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_scalar_tensor": "ascend"}
+        )
+        assert result.returncode == 0

@@ -40,6 +40,7 @@ def _run_rsqrt_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestRsqrtCorrectness:
     """torch.rsqrt correctness on flagos device."""
 
@@ -69,6 +70,7 @@ class TestRsqrtCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.cuda
 class TestRsqrtDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -87,3 +89,15 @@ class TestRsqrtDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestRsqrtAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify rsqrt on ascend backend matches CPU reference."""
+        result = _run_rsqrt_subprocess(
+            {"FLAGOS_OP_rsqrt": "ascend"}
+        )
+        assert result.returncode == 0

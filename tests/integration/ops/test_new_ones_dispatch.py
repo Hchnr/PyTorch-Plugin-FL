@@ -37,6 +37,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestNewOnesCorrectness:
     """tensor.new_ones correctness on flagos device."""
 
@@ -65,6 +66,7 @@ class TestNewOnesCorrectness:
         assert (out.cpu() == 1).all()
 
 
+@pytest.mark.cuda
 class TestNewOnesDispatch:
     """Verify dispatch routing."""
 
@@ -82,3 +84,15 @@ class TestNewOnesDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestNewOnesAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify new_ones on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_new_ones": "ascend"}
+        )
+        assert result.returncode == 0

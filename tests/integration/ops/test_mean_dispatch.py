@@ -40,6 +40,7 @@ def _run_mean_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestMeanDimCorrectness:
     """torch.mean(dim=...) correctness on flagos device."""
 
@@ -84,6 +85,7 @@ class TestMeanDimCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.cuda
 class TestMeanDimDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -102,3 +104,15 @@ class TestMeanDimDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestMeanDimAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify mean.dim on ascend backend matches CPU reference."""
+        result = _run_mean_subprocess(
+            {"FLAGOS_OP_mean__dim": "ascend"}
+        )
+        assert result.returncode == 0

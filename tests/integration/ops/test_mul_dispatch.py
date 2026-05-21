@@ -41,6 +41,7 @@ def _run_mul_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestMulTensorCorrectness:
     """torch.mul correctness on flagos device."""
 
@@ -74,6 +75,7 @@ class TestMulTensorCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.cuda
 class TestMulTensorDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -92,3 +94,15 @@ class TestMulTensorDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestMulTensorAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify mul.Tensor on ascend backend matches CPU reference."""
+        result = _run_mul_subprocess(
+            {"FLAGOS_OP_mul__Tensor": "ascend"}
+        )
+        assert result.returncode == 0

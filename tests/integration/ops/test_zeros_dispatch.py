@@ -33,6 +33,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestZerosCorrectness:
     """torch.zeros correctness on flagos device."""
 
@@ -57,6 +58,7 @@ class TestZerosCorrectness:
         assert out.cpu().item() == 0.0
 
 
+@pytest.mark.cuda
 class TestZerosDispatch:
     """Verify dispatch routing."""
 
@@ -74,3 +76,15 @@ class TestZerosDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestZerosAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify zeros on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_zeros": "ascend"}
+        )
+        assert result.returncode == 0

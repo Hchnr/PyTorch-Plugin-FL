@@ -38,6 +38,7 @@ def _run_sin_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestSinCorrectness:
     """torch.sin correctness on flagos device."""
 
@@ -74,6 +75,7 @@ class TestSinCorrectness:
         assert out.dtype == dtype
 
 
+@pytest.mark.cuda
 class TestSinDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -92,3 +94,15 @@ class TestSinDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestSinAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify sin on ascend backend matches CPU reference."""
+        result = _run_sin_subprocess(
+            {"FLAGOS_OP_sin": "ascend"}
+        )
+        assert result.returncode == 0

@@ -38,6 +38,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestBitwiseAndCorrectness:
     """torch.bitwise_and correctness on flagos device."""
 
@@ -64,6 +65,7 @@ class TestBitwiseAndCorrectness:
         torch.testing.assert_close(out.cpu(), ref)
 
 
+@pytest.mark.cuda
 class TestBitwiseAndDispatch:
     """Verify dispatch routing."""
 
@@ -81,3 +83,15 @@ class TestBitwiseAndDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestBitwiseAndAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify bitwise_and.Tensor on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_bitwise_and__Tensor": "ascend"}
+        )
+        assert result.returncode == 0

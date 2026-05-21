@@ -37,6 +37,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestSliceBackwardCorrectness:
     """slice_backward correctness on flagos device."""
 
@@ -75,6 +76,7 @@ class TestSliceBackwardCorrectness:
         torch.testing.assert_close(x_fl.grad.cpu(), x_cpu.grad, rtol=1e-5, atol=1e-5)
 
 
+@pytest.mark.cuda
 class TestSliceBackwardDispatch:
     """Verify dispatch routing."""
 
@@ -92,3 +94,15 @@ class TestSliceBackwardDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestSliceBackwardAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify slice_backward on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_slice_backward": "ascend"}
+        )
+        assert result.returncode == 0

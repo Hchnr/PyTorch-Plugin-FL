@@ -17,6 +17,7 @@ import torch_fl  # noqa: F401
 DEVICE = "flagos:0"
 
 
+@pytest.mark.anyplatform
 class TestDivScalarCorrectness:
     """torch.div(tensor, scalar) correctness on flagos device."""
 

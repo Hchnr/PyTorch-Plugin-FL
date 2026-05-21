@@ -194,12 +194,20 @@ export FLAGOS_LOG_DISPATCH=1  # 打印每次算子 dispatch 的后端选择
 
 ## 测试
 
+`tests/integration/ops/` 下的测试通过 `@pytest.mark` 标记平台分类：
+
+| 标记 | 含义 | 运行时机 |
+|------|------|----------|
+| `@pytest.mark.anyplatform` | 正确性测试，所有平台都应运行 | 始终 |
+| `@pytest.mark.cuda` | CUDA/FlagGems dispatch 路由测试 | 仅 CUDA 平台 |
+| `@pytest.mark.ascend` | Ascend 后端 dispatch 测试 | 仅 Ascend 平台 |
+
 ### CUDA 平台
 
 ```bash
-# 算子 dispatch 测试（需要 FlagGems 源码用于 C++ native API）
+# 算子测试（需要 FlagGems 源码用于 C++ native API）
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
-  pytest tests/integration/ops/ -v
+  pytest tests/integration/ops/ -v -m "anyplatform or cuda"
 
 # Qwen3 推理测试
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
@@ -208,27 +216,27 @@ FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/fla
 # Qwen3 训练测试（单卡）
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
   pytest tests/integration/test_qwen3_train.py -v -s --steps 10
-
-# CPU fallback 追踪测试
-pytest tests/integration/test_fallback_trace.py -v
-
-# 基础 factory 算子测试
-pytest tests/integration/test_factory_ops.py -v
 ```
 
 ### Ascend 平台
 
 ```bash
-# 算子 dispatch 测试（ascend 后端）
+# 算子测试
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf \
-  pytest tests/integration/ops/ -v -k "ascend"
+  pytest tests/integration/ops/ -v -m "anyplatform or ascend"
 
-# 基础 factory 算子测试
+# Qwen3 推理测试
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf \
-  pytest tests/integration/test_factory_ops.py -v
+  pytest tests/integration/test_qwen3_infer.py -v -s
+
+# Qwen3 训练测试（单卡）
+FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf \
+  pytest tests/integration/test_qwen3_train.py -v -s --steps 10
 ```
 
-**注意**：Ascend 平台必须设置 `FLAGOS_DISABLE_FLAGGEMS_PY=1` 以跳过 FlagGems Python 层注册，否则会因 NPU 设备检测问题导致崩溃。
+**注意**：Ascend 平台必须设置 `FLAGOS_DISABLE_FLAGGEMS_PY=1` 以跳过 FlagGems Python 层注册，否则会因 NPU 设备检测问题导致崩溃。FlagGems 在 Ascend 平台上是可选的。
+
+`test_qwen3_infer.py` 和 `test_qwen3_train.py` 在所有平台上使用相同代码，仅安装方式（`ACCELERATOR=ascend pip install -e .`）和运行时环境变量不同。
 
 ## 项目结构
 

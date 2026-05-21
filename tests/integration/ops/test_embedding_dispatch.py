@@ -59,6 +59,7 @@ def _run_embedding_subprocess(
     return result
 
 
+@pytest.mark.cuda
 class TestEmbeddingDispatch:
     """torch.nn.functional.embedding correctness on flagos."""
 
@@ -132,6 +133,7 @@ class TestEmbeddingDispatch:
         assert out.device.type == "flagos"
 
 
+@pytest.mark.cuda
 class TestEmbeddingDispatchLog:
     """Verify C++ wrapper routes to correct backend."""
 
@@ -155,3 +157,24 @@ class TestEmbeddingDispatchLog:
         assert "[flagos dispatch] embedding -> cuda" in result.stderr, (
             f"Expected cuda log, got:\n{result.stderr}"
         )
+
+    def test_dispatch_log_ascend_override(self):
+        """FLAGOS_OP_embedding=ascend overrides to ascend backend."""
+        result = _run_embedding_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_embedding": "ascend"}
+        )
+        assert "[flagos dispatch] embedding -> ascend" in result.stderr, (
+            f"Expected ascend dispatch log, got:\n{result.stderr}"
+        )
+
+
+@pytest.mark.ascend
+class TestEmbeddingAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify embedding on ascend backend matches CPU reference."""
+        result = _run_embedding_subprocess(
+            {"FLAGOS_OP_embedding": "ascend"}
+        )
+        assert result.returncode == 0

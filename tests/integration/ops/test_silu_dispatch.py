@@ -41,6 +41,7 @@ def _run_silu_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestSiluCorrectness:
     """torch.nn.functional.silu correctness on flagos device."""
 
@@ -70,6 +71,7 @@ class TestSiluCorrectness:
         torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.cuda
 class TestSiluDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -97,6 +99,7 @@ class TestSiluDispatch:
         assert "backend not registered" in result.stderr
 
 
+@pytest.mark.ascend
 class TestSiluAscendDispatch:
     """Verify Ascend backend correctness."""
 

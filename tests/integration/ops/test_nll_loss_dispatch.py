@@ -62,6 +62,7 @@ def _run_subprocess_backward(
     )
 
 
+@pytest.mark.anyplatform
 class TestNllLossForwardCorrectness:
     """nll_loss_forward correctness on flagos device."""
 
@@ -109,6 +110,7 @@ class TestNllLossForwardCorrectness:
         torch.testing.assert_close(out.cpu(), ref, rtol=1e-4, atol=1e-4)
 
 
+@pytest.mark.anyplatform
 class TestNllLossBackwardCorrectness:
     """nll_loss_backward correctness on flagos device."""
 
@@ -142,6 +144,7 @@ class TestNllLossBackwardCorrectness:
         )
 
 
+@pytest.mark.cuda
 class TestNllLossDispatch:
     """Verify dispatch routing."""
 
@@ -166,3 +169,15 @@ class TestNllLossDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestNllLossForwardAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify nll_loss_forward on ascend backend matches CPU reference."""
+        result = _run_subprocess_forward(
+            {"FLAGOS_OP_nll_loss_forward": "ascend"}
+        )
+        assert result.returncode == 0

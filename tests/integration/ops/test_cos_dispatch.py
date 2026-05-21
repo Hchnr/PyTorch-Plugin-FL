@@ -38,6 +38,7 @@ def _run_cos_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestCosCorrectness:
     """torch.cos correctness on flagos device."""
 
@@ -74,6 +75,7 @@ class TestCosCorrectness:
         assert out.dtype == dtype
 
 
+@pytest.mark.cuda
 class TestCosDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -92,3 +94,15 @@ class TestCosDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestCosAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify cos on ascend backend matches CPU reference."""
+        result = _run_cos_subprocess(
+            {"FLAGOS_OP_cos": "ascend"}
+        )
+        assert result.returncode == 0

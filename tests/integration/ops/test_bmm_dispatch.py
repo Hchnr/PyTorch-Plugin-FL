@@ -67,6 +67,7 @@ def _run_bmm_subprocess(
     return result
 
 
+@pytest.mark.cuda
 class TestBmmDispatch:
     """torch.bmm correctness and cross-device consistency."""
 
@@ -116,6 +117,7 @@ class TestBmmDispatch:
         assert out.shape == (4, 64, 32)
 
 
+@pytest.mark.cuda
 class TestBmmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
@@ -156,3 +158,32 @@ class TestBmmDispatchLog:
         assert "[flagos dispatch] bmm.out -> cuda" in result.stderr, (
             f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
+
+    def test_dispatch_log_ascend_override(self):
+        """FLAGOS_OP_bmm=ascend overrides to ascend backend."""
+        result = _run_bmm_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_bmm": "ascend"}
+        )
+        assert "[flagos dispatch] bmm -> ascend" in result.stderr, (
+            f"Expected ascend dispatch log, got:\n{result.stderr}"
+        )
+
+
+@pytest.mark.ascend
+class TestBmmAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify bmm on ascend backend matches CPU reference."""
+        result = _run_bmm_subprocess(
+            {"FLAGOS_OP_bmm": "ascend"}
+        )
+        assert result.returncode == 0
+
+    def test_ascend_out_correctness(self):
+        """Verify bmm.out on ascend backend matches CPU reference."""
+        result = _run_bmm_subprocess(
+            {"FLAGOS_OP_bmm__out": "ascend"},
+            use_out=True,
+        )
+        assert result.returncode == 0

@@ -40,6 +40,7 @@ def _run_all_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestAllCorrectness:
     """torch.all correctness on flagos device."""
 
@@ -96,6 +97,7 @@ class TestAllCorrectness:
         assert out.dtype == torch.bool
 
 
+@pytest.mark.cuda
 class TestAllDispatch:
     """Verify dispatch routing and flaggems backend rejection."""
 
@@ -114,3 +116,15 @@ class TestAllDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestAllAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify all on ascend backend matches CPU reference."""
+        result = _run_all_subprocess(
+            {"FLAGOS_OP_all": "ascend"}
+        )
+        assert result.returncode == 0

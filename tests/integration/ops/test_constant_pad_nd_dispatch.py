@@ -38,6 +38,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestConstantPadNdCorrectness:
     """constant_pad_nd correctness on flagos device."""
 
@@ -76,6 +77,7 @@ class TestConstantPadNdCorrectness:
         assert out.shape == (4, 6)
 
 
+@pytest.mark.cuda
 class TestConstantPadNdDispatch:
     """Verify dispatch routing."""
 
@@ -93,3 +95,15 @@ class TestConstantPadNdDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestConstantPadNdAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify constant_pad_nd on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_constant_pad_nd": "ascend"}
+        )
+        assert result.returncode == 0

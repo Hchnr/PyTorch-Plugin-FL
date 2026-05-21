@@ -38,6 +38,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestLeCorrectness:
     """torch.le correctness on flagos device."""
 
@@ -71,6 +72,7 @@ class TestLeCorrectness:
         torch.testing.assert_close(out.cpu(), ref)
 
 
+@pytest.mark.cuda
 class TestLeDispatch:
     """Verify dispatch routing."""
 
@@ -88,3 +90,15 @@ class TestLeDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestLeAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify le.Tensor on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_le__Tensor": "ascend"}
+        )
+        assert result.returncode == 0

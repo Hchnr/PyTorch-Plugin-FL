@@ -58,6 +58,7 @@ def _run_cat_subprocess(
     return result
 
 
+@pytest.mark.cuda
 class TestCatDispatch:
     """torch.cat correctness on flagos device."""
 
@@ -130,6 +131,7 @@ class TestCatDispatch:
         assert out.shape == (2, 4, 24)
 
 
+@pytest.mark.cuda
 class TestCatDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
@@ -150,3 +152,24 @@ class TestCatDispatchLog:
         assert "[flagos dispatch] cat -> cuda" in result.stderr, (
             f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
+
+    def test_dispatch_log_ascend_override(self):
+        """FLAGOS_OP_cat=ascend overrides to ascend backend."""
+        result = _run_cat_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_cat": "ascend"}
+        )
+        assert "[flagos dispatch] cat -> ascend" in result.stderr, (
+            f"Expected ascend dispatch log, got:\n{result.stderr}"
+        )
+
+
+@pytest.mark.ascend
+class TestCatAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify cat on ascend backend matches CPU reference."""
+        result = _run_cat_subprocess(
+            {"FLAGOS_OP_cat": "ascend"}
+        )
+        assert result.returncode == 0

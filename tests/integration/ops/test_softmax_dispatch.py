@@ -40,6 +40,7 @@ def _run_softmax_subprocess(
     )
 
 
+@pytest.mark.anyplatform
 class TestSoftmaxCorrectness:
     """torch.softmax correctness on flagos device."""
 
@@ -82,6 +83,7 @@ class TestSoftmaxCorrectness:
         torch.testing.assert_close(sums, torch.ones(8), rtol=1e-2, atol=1e-2)
 
 
+@pytest.mark.cuda
 class TestSoftmaxDispatch:
     """Verify C++ wrapper routes to the correct backend."""
 
@@ -98,3 +100,15 @@ class TestSoftmaxDispatch:
         )
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] _softmax -> cuda" in result.stderr
+
+
+@pytest.mark.ascend
+class TestSoftmaxAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify softmax on ascend backend matches CPU reference."""
+        result = _run_softmax_subprocess(
+            {"FLAGOS_OP__softmax": "ascend"}
+        )
+        assert result.returncode == 0

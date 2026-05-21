@@ -38,6 +38,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
     )
 
 
+@pytest.mark.anyplatform
 class TestEmbeddingDenseBackwardCorrectness:
     """embedding_dense_backward correctness on flagos device."""
 
@@ -84,6 +85,7 @@ class TestEmbeddingDenseBackwardCorrectness:
         torch.testing.assert_close(emb.weight.grad.cpu()[3], expected)
 
 
+@pytest.mark.cuda
 class TestEmbeddingDenseBackwardDispatch:
     """Verify dispatch routing."""
 
@@ -101,3 +103,15 @@ class TestEmbeddingDenseBackwardDispatch:
         )
         assert result.returncode != 0
         assert "backend not registered" in result.stderr
+
+
+@pytest.mark.ascend
+class TestEmbeddingDenseBackwardAscendDispatch:
+    """Verify Ascend backend correctness."""
+
+    def test_ascend_correctness(self):
+        """Verify embedding_dense_backward on ascend backend matches CPU reference."""
+        result = _run_subprocess(
+            {"FLAGOS_OP_embedding_dense_backward": "ascend"}
+        )
+        assert result.returncode == 0
