@@ -25,10 +25,7 @@ inline aclDataType ToAclDataType(at::ScalarType type) {
     case at::kShort:   return ACL_INT16;
     case at::kChar:    return ACL_INT8;
     case at::kByte:    return ACL_UINT8;
-<<<<<<< HEAD
     case at::kBool:    return ACL_BOOL;
-=======
->>>>>>> main
     default:
       TORCH_CHECK(false, "Unsupported dtype for ACL: ", type);
   }
@@ -106,7 +103,6 @@ inline void GetApiFunc(const char* api_name, const char* workspace_name,
   }
 }
 
-<<<<<<< HEAD
 struct AclScalarWrapper {
   aclScalar* acl_scalar = nullptr;
 
@@ -163,8 +159,6 @@ struct AclTensorListWrapper {
   const aclTensorList* get() const { return acl_list; }
 };
 
-=======
->>>>>>> main
 } // namespace at::native::flagos::ascend
 
 #define EXEC_ASCEND_CMD(aclnn_api, ...)                                       \

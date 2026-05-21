@@ -141,7 +141,6 @@ class TestMmDispatchLog:
             f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
 
-<<<<<<< HEAD
     def test_dispatch_log_ascend_override(self):
         """FLAGOS_OP_mm=ascend overrides to ascend backend."""
         result = _run_mm_subprocess(
@@ -151,8 +150,6 @@ class TestMmDispatchLog:
             f"Expected ascend dispatch log, got:\n{result.stderr}"
         )
 
-=======
->>>>>>> main
     def test_dispatch_log_mm_out_flagos_flaggems_override(self):
         """FLAGOS_OP_mm__out=flaggems routes mm.out to flagos backend."""
         result = _run_mm_subprocess(

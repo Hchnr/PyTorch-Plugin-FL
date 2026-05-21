@@ -11,16 +11,9 @@
 #include "contiguous_ops.h"
 #include "fallback.h"
 #include "mm.h"
-<<<<<<< HEAD
 #include "add.h"
 #include "silu.h"
 #include "neg.h"
-=======
-
-// Ascend development: only register implemented ops above.
-// Unregistered ops fall through to WrapperCpuFallback automatically.
-#ifndef USE_ASCEND
->>>>>>> main
 #include "bmm.h"
 #include "cat.h"
 #include "embedding.h"
@@ -191,7 +184,6 @@ at::Tensor& WrapperMmOut(const at::Tensor& self, const at::Tensor& mat2, at::Ten
   return out;
 }
 
-<<<<<<< HEAD
 at::Tensor WrapperAddTensor(
     const at::Tensor& self, const at::Tensor& other, const at::Scalar& alpha) {
   return at::native::flagos::add_tensor_stub(self, other, alpha);
@@ -205,9 +197,6 @@ at::Tensor WrapperNeg(const at::Tensor& self) {
   return at::native::flagos::neg_stub(self);
 }
 
-=======
-#ifndef USE_ASCEND
->>>>>>> main
 at::Tensor WrapperBmm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), self.size(1), mat2.size(2)}, self.options());
   at::native::flagos::StructuredBmmOut op(out);
@@ -393,13 +382,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   // CUDA/FlagGems build: register all ops
   m.impl("mm", WrapperMm);
   m.impl("mm.out", WrapperMmOut);
-<<<<<<< HEAD
   m.impl("add.Tensor", WrapperAddTensor);
   m.impl("silu", WrapperSilu);
   m.impl("neg", WrapperNeg);
-=======
-#ifndef USE_ASCEND
->>>>>>> main
   m.impl("bmm", WrapperBmm);
   m.impl("bmm.out", WrapperBmmOut);
   m.impl("cat", WrapperCat);
@@ -427,7 +412,6 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("embedding_dense_backward", WrapperEmbeddingDenseBackward);
   m.impl("nll_loss_forward", WrapperNllLossForward);
   m.impl("nll_loss_backward", WrapperNllLossBackward);
-<<<<<<< HEAD
 #else
   // Ascend build: register only ops with Ascend kernel implementations
   m.impl("mm", WrapperMm);
@@ -463,9 +447,6 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("nll_loss_forward", WrapperNllLossForward);
   m.impl("nll_loss_backward", WrapperNllLossBackward);
 #endif
-=======
-#endif // USE_ASCEND
->>>>>>> main
 }
 
 // Register fallback for all unimplemented operators
