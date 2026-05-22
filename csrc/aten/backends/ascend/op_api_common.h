@@ -70,6 +70,9 @@ struct AclTensorWrapper {
     }
   }
 
+  // Release ownership without destroying the tensor
+  void release() { acl_tensor = nullptr; }
+
   const aclTensor* get() const { return acl_tensor; }
 };
 

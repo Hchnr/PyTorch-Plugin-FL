@@ -3,6 +3,7 @@
 #include "../../add.h"
 
 #include <ATen/core/Tensor.h>
+#include <ATen/ExpandUtils.h>
 #include "op_preparation.h"
 #include "op_api_common.h"
 
@@ -12,13 +13,20 @@ at::Tensor AddKernelAscend(
     const at::Tensor& self, const at::Tensor& other, const at::Scalar& alpha) {
   namespace ascend = at::native::flagos::ascend;
 
-  auto out = ascend::OpPreparation::apply_tensor_without_format(
-      self.sizes(), self.options());
+  auto result_dtype = self.scalar_type();
+  auto self_contig = self.is_privateuseone() ? self : self.to(self.options().device(c10::DeviceType::PrivateUse1));
+  auto other_contig = other.is_privateuseone()
+      ? (other.scalar_type() == result_dtype ? other : other.to(result_dtype))
+      : other.to(self.options());
 
-  ascend::AclTensorWrapper acl_self(self);
-  ascend::AclTensorWrapper acl_other(other);
+  auto out_shape = at::infer_size(self_contig.sizes(), other_contig.sizes());
+  auto out = ascend::OpPreparation::apply_tensor_without_format(
+      out_shape, self_contig.options());
+
+  ascend::AclTensorWrapper acl_self(self_contig);
+  ascend::AclTensorWrapper acl_other(other_contig);
   ascend::AclTensorWrapper acl_out(out);
-  ascend::AclScalarWrapper acl_alpha(alpha, self.scalar_type());
+  ascend::AclScalarWrapper acl_alpha(alpha, result_dtype);
 
   EXEC_ASCEND_CMD(aclnnAdd,
       acl_self.get(), acl_other.get(), acl_alpha.get(), acl_out.get());

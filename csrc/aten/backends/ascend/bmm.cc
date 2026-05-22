@@ -12,13 +12,18 @@ void BmmKernelAscend(
     const at::Tensor& mat2,
     at::Tensor& out) {
   namespace ascend = at::native::flagos::ascend;
-  int8_t cube_math_type = ascend::OpPreparation::get_cube_math_type(false);
 
-  ascend::AclTensorWrapper acl_self(self);
-  ascend::AclTensorWrapper acl_mat2(mat2);
+  auto self_contig = self.is_privateuseone() ? self : self.to(out.options());
+  auto mat2_contig = mat2.is_privateuseone()
+      ? (mat2.scalar_type() == out.scalar_type() ? mat2 : mat2.to(out.scalar_type()))
+      : mat2.to(out.options());
+
+  ascend::AclTensorWrapper acl_self(self_contig);
+  ascend::AclTensorWrapper acl_mat2(mat2_contig);
   ascend::AclTensorWrapper acl_out(out);
 
-  EXEC_ASCEND_CMD(aclnnBmm, acl_self.get(), acl_mat2.get(), acl_out.get(), cube_math_type);
+  int8_t cube_math_type = ascend::OpPreparation::get_cube_math_type(false);
+  EXEC_ASCEND_CMD(aclnnBatchMatMul, acl_self.get(), acl_mat2.get(), acl_out.get(), cube_math_type);
 }
 
 FLAGOS_REGISTER_DISPATCH(BmmFn, bmm_stub, FlagosDevice::kAscend, BmmKernelAscend)

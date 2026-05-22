@@ -189,6 +189,16 @@ at::Tensor WrapperAddTensor(
   return at::native::flagos::add_tensor_stub(self, other, alpha);
 }
 
+at::Tensor WrapperAddScalar(
+    const at::Tensor& self, const at::Scalar& other, const at::Scalar& alpha) {
+  auto other_tensor = at::scalar_tensor(other, self.options());
+  auto alpha_val = alpha.toDouble();
+  if (alpha_val != 1.0) {
+    other_tensor = other_tensor * alpha;
+  }
+  return at::native::flagos::add_tensor_stub(self, other_tensor, at::Scalar(1));
+}
+
 at::Tensor WrapperSilu(const at::Tensor& self) {
   return at::native::flagos::silu_stub(self);
 }
@@ -380,6 +390,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("mm", WrapperMm);
   m.impl("mm.out", WrapperMmOut);
   m.impl("add.Tensor", WrapperAddTensor);
+  m.impl("add.Scalar", WrapperAddScalar);
   m.impl("silu", WrapperSilu);
   m.impl("neg", WrapperNeg);
   m.impl("bmm", WrapperBmm);

@@ -49,7 +49,9 @@ at::Tensor MeanDimKernelAscend(
 
   auto acl_dims = ascend::AclIntArrayWrapper(dims);
 
-  EXEC_ASCEND_CMD(aclnnMean, acl_self.get(), acl_dims.get(), keepdim, out_dtype, acl_out.get());
+  // CANN 8.5: use aclnnMeanV2 which accepts dtype parameter
+  auto acl_dtype = static_cast<int32_t>(at::native::flagos::ascend::ToAclDataType(out_dtype));
+  EXEC_ASCEND_CMD(aclnnMeanV2, acl_self.get(), acl_dims.get(), keepdim, acl_dtype, acl_out.get());
   return out;
 }
 

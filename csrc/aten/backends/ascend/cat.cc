@@ -27,12 +27,14 @@ at::Tensor CatKernelAscend(const at::ITensorListRef& tensors, int64_t dim) {
       out_sizes, first.options());
 
   // Build aclTensorList
-  std::vector<const aclTensor*> acl_tensors;
   std::vector<ascend::AclTensorWrapper> wrappers;
   wrappers.reserve(materialized.size());
   for (const auto& t : materialized) {
     wrappers.emplace_back(t.get());
   }
+
+  std::vector<const aclTensor*> acl_tensors;
+  acl_tensors.reserve(materialized.size());
   for (auto& w : wrappers) {
     acl_tensors.push_back(w.get());
   }
@@ -44,7 +46,9 @@ at::Tensor CatKernelAscend(const at::ITensorListRef& tensors, int64_t dim) {
 
   EXEC_ASCEND_CMD(aclnnCat, tensor_list, dim, acl_out.get());
 
-  aclDestroyTensorList(tensor_list);
+  // Do not call aclDestroyTensorList — it may destroy the internal aclTensor
+  // objects which are still owned by the AclTensorWrapper RAII objects.
+  (void)tensor_list;
   return out;
 }
 

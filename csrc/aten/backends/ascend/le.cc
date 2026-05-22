@@ -59,11 +59,16 @@ LeApiAddrs GetLeApiAddrs() {
 
 at::Tensor LeTensorKernelAscend(const at::Tensor& self, const at::Tensor& other) {
   namespace ascend = at::native::flagos::ascend;
-  auto out = ascend::OpPreparation::apply_tensor_without_format(
-      self.sizes(), self.options().dtype(at::kBool));
 
-  ascend::AclTensorWrapper acl_self(self);
-  ascend::AclTensorWrapper acl_other(other);
+  auto out_shape = at::infer_size(self.sizes(), other.sizes());
+  auto self_expanded = self.expand(out_shape).contiguous();
+  auto other_expanded = other.expand(out_shape).contiguous();
+
+  auto out = ascend::OpPreparation::apply_tensor_without_format(
+      out_shape, self.options().dtype(at::kBool));
+
+  ascend::AclTensorWrapper acl_self(self_expanded);
+  ascend::AclTensorWrapper acl_other(other_expanded);
   ascend::AclTensorWrapper acl_out(out);
 
   auto addrs = GetLeApiAddrs();
