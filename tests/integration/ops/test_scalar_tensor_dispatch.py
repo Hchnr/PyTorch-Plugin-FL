@@ -83,7 +83,5 @@ class TestScalarTensorAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify scalar_tensor on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_scalar_tensor": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_scalar_tensor": "ascend"})
         assert result.returncode == 0

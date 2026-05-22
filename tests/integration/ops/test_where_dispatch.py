@@ -108,7 +108,5 @@ class TestWhereAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify where.self on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_where__self": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_where__self": "ascend"})
         assert result.returncode == 0

@@ -178,7 +178,5 @@ class TestCatAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify cat on ascend backend matches CPU reference."""
-        result = _run_cat_subprocess(
-            {"FLAGOS_OP_cat": "ascend"}
-        )
+        result = _run_cat_subprocess({"FLAGOS_OP_cat": "ascend"})
         assert result.returncode == 0

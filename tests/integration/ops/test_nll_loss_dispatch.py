@@ -183,7 +183,5 @@ class TestNllLossForwardAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify nll_loss_forward on ascend backend matches CPU reference."""
-        result = _run_subprocess_forward(
-            {"FLAGOS_OP_nll_loss_forward": "ascend"}
-        )
+        result = _run_subprocess_forward({"FLAGOS_OP_nll_loss_forward": "ascend"})
         assert result.returncode == 0

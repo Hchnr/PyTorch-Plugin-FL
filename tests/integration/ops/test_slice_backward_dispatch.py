@@ -106,7 +106,5 @@ class TestSliceBackwardAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify slice_backward on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_slice_backward": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_slice_backward": "ascend"})
         assert result.returncode == 0

@@ -122,7 +122,5 @@ class TestAddTensorAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify add.Tensor on ascend backend matches CPU reference."""
-        result = _run_add_subprocess(
-            {"FLAGOS_OP_add__Tensor": "ascend"}
-        )
+        result = _run_add_subprocess({"FLAGOS_OP_add__Tensor": "ascend"})
         assert result.returncode == 0

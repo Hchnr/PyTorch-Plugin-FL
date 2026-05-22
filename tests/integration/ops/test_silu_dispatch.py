@@ -109,7 +109,5 @@ class TestSiluAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify silu on ascend backend matches CPU reference."""
-        result = _run_silu_subprocess(
-            {"FLAGOS_OP_silu": "ascend"}
-        )
+        result = _run_silu_subprocess({"FLAGOS_OP_silu": "ascend"})
         assert result.returncode == 0

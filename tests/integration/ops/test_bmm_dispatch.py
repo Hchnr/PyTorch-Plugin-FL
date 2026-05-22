@@ -182,9 +182,7 @@ class TestBmmAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify bmm on ascend backend matches CPU reference."""
-        result = _run_bmm_subprocess(
-            {"FLAGOS_OP_bmm": "ascend"}
-        )
+        result = _run_bmm_subprocess({"FLAGOS_OP_bmm": "ascend"})
         assert result.returncode == 0
 
     @pytest.mark.ascend

@@ -100,7 +100,5 @@ class TestRsqrtAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify rsqrt on ascend backend matches CPU reference."""
-        result = _run_rsqrt_subprocess(
-            {"FLAGOS_OP_rsqrt": "ascend"}
-        )
+        result = _run_rsqrt_subprocess({"FLAGOS_OP_rsqrt": "ascend"})
         assert result.returncode == 0

@@ -97,7 +97,5 @@ class TestNewOnesAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify new_ones on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_new_ones": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_new_ones": "ascend"})
         assert result.returncode == 0

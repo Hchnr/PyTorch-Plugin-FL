@@ -198,9 +198,7 @@ class TestMmAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify mm on ascend backend matches CPU reference."""
-        result = _run_mm_subprocess(
-            {"FLAGOS_OP_mm": "ascend"}
-        )
+        result = _run_mm_subprocess({"FLAGOS_OP_mm": "ascend"})
         assert result.returncode == 0
 
     @pytest.mark.ascend

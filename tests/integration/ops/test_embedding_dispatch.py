@@ -182,7 +182,5 @@ class TestEmbeddingAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify embedding on ascend backend matches CPU reference."""
-        result = _run_embedding_subprocess(
-            {"FLAGOS_OP_embedding": "ascend"}
-        )
+        result = _run_embedding_subprocess({"FLAGOS_OP_embedding": "ascend"})
         assert result.returncode == 0

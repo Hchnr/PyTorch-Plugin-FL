@@ -106,7 +106,5 @@ class TestCosAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify cos on ascend backend matches CPU reference."""
-        result = _run_cos_subprocess(
-            {"FLAGOS_OP_cos": "ascend"}
-        )
+        result = _run_cos_subprocess({"FLAGOS_OP_cos": "ascend"})
         assert result.returncode == 0

@@ -107,7 +107,5 @@ class TestConstantPadNdAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify constant_pad_nd on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_constant_pad_nd": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_constant_pad_nd": "ascend"})
         assert result.returncode == 0

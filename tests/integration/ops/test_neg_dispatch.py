@@ -119,7 +119,5 @@ class TestNegAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify neg on ascend backend matches CPU reference."""
-        result = _run_neg_subprocess(
-            {"FLAGOS_OP_neg": "ascend"}
-        )
+        result = _run_neg_subprocess({"FLAGOS_OP_neg": "ascend"})
         assert result.returncode == 0

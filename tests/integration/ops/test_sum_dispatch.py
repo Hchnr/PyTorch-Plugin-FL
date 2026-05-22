@@ -132,7 +132,5 @@ class TestSumDimAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify sum.dim_IntList on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_sum__dim_IntList": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_sum__dim_IntList": "ascend"})
         assert result.returncode == 0

@@ -105,7 +105,5 @@ class TestMulTensorAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify mul.Tensor on ascend backend matches CPU reference."""
-        result = _run_mul_subprocess(
-            {"FLAGOS_OP_mul__Tensor": "ascend"}
-        )
+        result = _run_mul_subprocess({"FLAGOS_OP_mul__Tensor": "ascend"})
         assert result.returncode == 0

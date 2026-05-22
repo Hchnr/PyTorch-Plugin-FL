@@ -106,7 +106,5 @@ class TestSinAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify sin on ascend backend matches CPU reference."""
-        result = _run_sin_subprocess(
-            {"FLAGOS_OP_sin": "ascend"}
-        )
+        result = _run_sin_subprocess({"FLAGOS_OP_sin": "ascend"})
         assert result.returncode == 0

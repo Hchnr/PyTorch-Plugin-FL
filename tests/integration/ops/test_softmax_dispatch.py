@@ -113,7 +113,5 @@ class TestSoftmaxAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify softmax on ascend backend matches CPU reference."""
-        result = _run_softmax_subprocess(
-            {"FLAGOS_OP__softmax": "ascend"}
-        )
+        result = _run_softmax_subprocess({"FLAGOS_OP__softmax": "ascend"})
         assert result.returncode == 0

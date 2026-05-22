@@ -131,7 +131,5 @@ class TestAllAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify all on ascend backend matches CPU reference."""
-        result = _run_all_subprocess(
-            {"FLAGOS_OP_all": "ascend"}
-        )
+        result = _run_all_subprocess({"FLAGOS_OP_all": "ascend"})
         assert result.returncode == 0

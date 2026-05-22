@@ -116,7 +116,5 @@ class TestMeanDimAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify mean.dim on ascend backend matches CPU reference."""
-        result = _run_mean_subprocess(
-            {"FLAGOS_OP_mean__dim": "ascend"}
-        )
+        result = _run_mean_subprocess({"FLAGOS_OP_mean__dim": "ascend"})
         assert result.returncode == 0

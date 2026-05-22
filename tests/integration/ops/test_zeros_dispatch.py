@@ -87,7 +87,5 @@ class TestZerosAscendDispatch:
     @pytest.mark.ascend
     def test_ascend_correctness(self):
         """Verify zeros on ascend backend matches CPU reference."""
-        result = _run_subprocess(
-            {"FLAGOS_OP_zeros": "ascend"}
-        )
+        result = _run_subprocess({"FLAGOS_OP_zeros": "ascend"})
         assert result.returncode == 0
