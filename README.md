@@ -192,27 +192,54 @@ export FLAGOS_LOG_DISPATCH=1  # Print backend selection for each operator dispat
 export TORCH_DEVICE_BACKEND_AUTOLOAD=0
 
 # Basic operator tests
-pytest tests/integration/test_factory_ops.py -v --device cuda
-pytest tests/integration/test_factory_ops.py -v --device flagos
+pytest tests/integration/test_factory_ops.py -v
 
-# Dispatch routing tests
+# Dispatch routing tests (all platforms)
 pytest tests/integration/ops/ -v
+
+# Run only CUDA-specific tests
+pytest tests/integration/ops/ -v -m cuda
+
+# Run only FlagGems (Triton) backend tests
+pytest tests/integration/ops/ -v -m flaggems
+
+# Run only FlagGems Python wrapper tests
+pytest tests/integration/ops/ -v -m flaggems_python
+
+# Run platform-agnostic correctness tests
+pytest tests/integration/ops/ -v -m anyplatform
 
 # CPU fallback tracing tests
 pytest tests/integration/test_fallback_trace.py -v
 
 # Qwen3 inference
-pytest tests/integration/test_qwen3_infer.py -v -s --device cuda
-pytest tests/integration/test_qwen3_infer.py -v -s --device flagos
+pytest tests/integration/test_qwen3_infer.py -v -s
 
 # Qwen3 training (single GPU)
-pytest tests/integration/test_qwen3_train.py -v -s --device cuda --steps 10
-pytest tests/integration/test_qwen3_train.py -v -s --device flagos --steps 10
+pytest tests/integration/test_qwen3_train.py -v -s --steps 10
+
+# FlagGems Python wrapper (flagos_python) end-to-end tests
+FLAGOS_BACKEND_CONFIG=torch_fl/backends_flagos_py.conf \
+  pytest tests/integration/ops/ -v
 
 # Ascend operator tests
 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf \
-  pytest tests/integration/test_factory_ops.py -v --device flagos
+  pytest tests/integration/test_factory_ops.py -v
 ```
+
+### Pytest Marks
+
+Operator tests in `tests/integration/ops/` use pytest marks to indicate platform/backend requirements:
+
+| Mark | Description |
+|------|-------------|
+| `@pytest.mark.anyplatform` | Platform-agnostic correctness tests (shape, dtype, broadcast) |
+| `@pytest.mark.cuda` | Requires CUDA backend or CUDA reference comparison |
+| `@pytest.mark.flaggems` | Requires FlagGems (Triton) backend |
+| `@pytest.mark.flaggems_python` | Requires FlagGems Python wrapper (pybind11 path) |
+| `@pytest.mark.ascend` | Requires Ascend NPU backend |
+
+Use `-m <mark>` to run specific test categories. Example: `pytest tests/integration/ops/ -m cuda` runs only CUDA tests.
 
 ## Project Structure
 

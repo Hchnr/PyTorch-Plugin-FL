@@ -176,23 +176,50 @@ export FLAGOS_LOG_DISPATCH=1  # 打印每次算子 dispatch 的后端选择
 export TORCH_DEVICE_BACKEND_AUTOLOAD=0
 
 # 基础算子测试
-pytest tests/integration/test_factory_ops.py -v --device cuda
-pytest tests/integration/test_factory_ops.py -v --device flagos
+pytest tests/integration/test_factory_ops.py -v
 
-# dispatch 路由测试
+# dispatch 路由测试（全平台）
 pytest tests/integration/ops/ -v
+
+# 仅运行 CUDA 相关测试
+pytest tests/integration/ops/ -v -m cuda
+
+# 仅运行 FlagGems (Triton) 后端测试
+pytest tests/integration/ops/ -v -m flaggems
+
+# 仅运行 FlagGems Python wrapper 测试
+pytest tests/integration/ops/ -v -m flaggems_python
+
+# 仅运行平台无关的正确性测试
+pytest tests/integration/ops/ -v -m anyplatform
 
 # CPU fallback 追踪测试
 pytest tests/integration/test_fallback_trace.py -v
 
 # Qwen3 推理
-pytest tests/integration/test_qwen3_infer.py -v -s --device cuda
-pytest tests/integration/test_qwen3_infer.py -v -s --device flagos
+pytest tests/integration/test_qwen3_infer.py -v -s
 
 # Qwen3 训练（单卡）
-pytest tests/integration/test_qwen3_train.py -v -s --device cuda --steps 10
-pytest tests/integration/test_qwen3_train.py -v -s --device flagos --steps 10
+pytest tests/integration/test_qwen3_train.py -v -s --steps 10
+
+# FlagGems Python wrapper (flagos_python) 端到端测试
+FLAGOS_BACKEND_CONFIG=torch_fl/backends_flagos_py.conf \
+  pytest tests/integration/ops/ -v
 ```
+
+### Pytest Marks
+
+`tests/integration/ops/` 中的算子测试使用 pytest mark 标记平台/后端依赖：
+
+| Mark | 说明 |
+|------|------|
+| `@pytest.mark.anyplatform` | 平台无关的正确性测试（shape、dtype、broadcast） |
+| `@pytest.mark.cuda` | 需要 CUDA 后端或 CUDA 参考对比 |
+| `@pytest.mark.flaggems` | 需要 FlagGems (Triton) 后端 |
+| `@pytest.mark.flaggems_python` | 需要 FlagGems Python wrapper (pybind11 路径) |
+| `@pytest.mark.ascend` | 需要 Ascend NPU 后端 |
+
+使用 `-m <mark>` 运行特定类别的测试，例如：`pytest tests/integration/ops/ -m cuda` 仅运行 CUDA 测试。
 
 ## 项目结构
 
