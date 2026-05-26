@@ -3,7 +3,8 @@ slice_backward dispatch tests
 
 Verifies that slice_backward:
   - produces correct gradients on flagos device
-  - C++ wrapper routes to cuda backend
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_slice_backward_dispatch.py -v
@@ -13,6 +14,7 @@ import os
 import subprocess
 import sys
 
+import pytest
 import torch
 import torch_fl  # noqa: F401
 
@@ -40,6 +42,7 @@ def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.Completed
 class TestSliceBackwardCorrectness:
     """slice_backward correctness on flagos device."""
 
+    @pytest.mark.anyplatform
     def test_slice_backward_basic(self):
         torch.manual_seed(0)
         x = torch.randn(4, 8, device=DEVICE, requires_grad=True)
@@ -52,6 +55,7 @@ class TestSliceBackwardCorrectness:
         ref_grad[:, 2:6] = 1.0
         torch.testing.assert_close(x.grad.cpu(), ref_grad)
 
+    @pytest.mark.anyplatform
     def test_slice_backward_step(self):
         torch.manual_seed(1)
         x = torch.randn(16, device=DEVICE, requires_grad=True)
@@ -61,6 +65,7 @@ class TestSliceBackwardCorrectness:
         ref_grad[::2] = 1.0
         torch.testing.assert_close(x.grad.cpu(), ref_grad)
 
+    @pytest.mark.anyplatform
     def test_slice_backward_matches_cpu(self):
         torch.manual_seed(2)
         x_cpu = torch.randn(8, 16, requires_grad=True)
@@ -76,19 +81,23 @@ class TestSliceBackwardCorrectness:
 
 
 class TestSliceBackwardDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for slice_backward op."""
 
-    def test_dispatch_log_cuda(self):
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_slice_backward": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] slice_backward -> flagos_python" in result.stderr
+
+    @pytest.mark.cuda
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_slice_backward": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] slice_backward -> cuda" in result.stderr
-
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_slice_backward": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
