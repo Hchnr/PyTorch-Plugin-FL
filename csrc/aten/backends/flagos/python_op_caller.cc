@@ -52,10 +52,16 @@ PythonOpCache& GetCache() {
 
 // Convert at::Tensor to Python THPVariable (borrowed ref wrapped in py::object)
 // Boxes device to CUDA so Triton/FlagGems can access the data pointer.
+// CPU scalar tensors (0-dim) are moved to CUDA since FlagGems kernels
+// cannot access CPU memory.
 py::object TensorToPython(const at::Tensor& t) {
   if (!t.defined()) return py::none();
   if (t.device().type() == c10::DeviceType::PrivateUse1) {
     BoxToCuda(t);
+  } else if (t.device().is_cpu() && t.dim() == 0) {
+    auto cuda_t = t.to(c10::Device(c10::DeviceType::CUDA, 0));
+    PyObject* obj = THPVariable_Wrap(cuda_t);
+    return py::reinterpret_steal<py::object>(obj);
   }
   PyObject* obj = THPVariable_Wrap(t);
   return py::reinterpret_steal<py::object>(obj);
