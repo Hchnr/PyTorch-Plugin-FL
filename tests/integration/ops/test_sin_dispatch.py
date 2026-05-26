@@ -3,8 +3,8 @@ sin dispatch tests
 
 Verifies that torch.sin:
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_sin_dispatch.py -v
@@ -79,26 +79,26 @@ class TestSinCorrectness:
 
 
 class TestSinDispatch:
-    """Verify dispatch routing and flaggems backend rejection."""
+    """Verify dispatch routing for sin op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_sin_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_sin": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] sin -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_sin_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_sin": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] sin -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        """Selecting flaggems backend must fail — not implemented."""
-        result = _run_sin_subprocess(
-            {"FLAGOS_OP_sin": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestSinAscendDispatch:
     """Verify Ascend backend correctness."""

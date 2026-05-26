@@ -3,8 +3,8 @@ pow.Tensor_Scalar dispatch tests
 
 Verifies that torch.pow(tensor, scalar):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_pow_dispatch.py -v
@@ -100,26 +100,26 @@ class TestPowTensorScalarCorrectness:
 
 
 class TestPowTensorScalarDispatch:
-    """Verify dispatch routing and flaggems backend rejection."""
+    """Verify dispatch routing for pow.Tensor_Scalar op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_pow_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_pow__Tensor_Scalar": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] pow.Tensor_Scalar -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_pow_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_pow__Tensor_Scalar": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] pow.Tensor_Scalar -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        """Selecting flaggems backend must fail — not implemented."""
-        result = _run_pow_subprocess(
-            {"FLAGOS_OP_pow__Tensor_Scalar": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestPowTensorScalarAscendDispatch:
     """Verify Ascend backend correctness."""

@@ -128,7 +128,18 @@ class TestMmDispatch:
 class TestMmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
-    @pytest.mark.cuda
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        """FLAGOS_OP_mm=flaggems_python routes mm to flagos_python backend."""
+        result = _run_mm_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mm": "flaggems_python"},
+            check=False,
+        )
+        assert "[flagos dispatch] mm -> flagos_python" in result.stderr, (
+            f"Expected flagos_python dispatch log, got:\n{result.stderr}"
+        )
+
+    @pytest.mark.flaggems
     def test_dispatch_log_flagos_flaggems_override(self):
         """FLAGOS_OP_mm=flaggems routes mm to flagos backend."""
         result = _run_mm_subprocess(
@@ -159,6 +170,7 @@ class TestMmDispatchLog:
         )
 
     @pytest.mark.cuda
+    @pytest.mark.flaggems
     def test_dispatch_log_mm_out_flagos_flaggems_override(self):
         """FLAGOS_OP_mm__out=flaggems routes mm.out to flagos backend."""
         result = _run_mm_subprocess(

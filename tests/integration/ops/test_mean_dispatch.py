@@ -3,8 +3,8 @@ mean.dim dispatch tests
 
 Verifies that torch.mean(dim=...):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_mean_dispatch.py -v
@@ -89,26 +89,26 @@ class TestMeanDimCorrectness:
 
 
 class TestMeanDimDispatch:
-    """Verify dispatch routing and flaggems backend rejection."""
+    """Verify dispatch routing for mean.dim op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_mean_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_mean__dim": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] mean.dim -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_mean_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mean__dim": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] mean.dim -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        """Selecting flaggems backend must fail — not implemented."""
-        result = _run_mean_subprocess(
-            {"FLAGOS_OP_mean__dim": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestMeanDimAscendDispatch:
     """Verify Ascend backend correctness."""

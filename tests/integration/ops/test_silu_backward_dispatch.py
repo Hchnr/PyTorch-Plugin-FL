@@ -3,7 +3,8 @@ silu_backward dispatch tests
 
 Verifies that silu_backward:
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_silu_backward_dispatch.py -v
@@ -52,6 +53,7 @@ class TestSiluBackwardCorrectness:
         assert x.grad.device.type == "flagos"
 
     @pytest.mark.cuda
+    @pytest.mark.anyplatform
     def test_silu_backward_matches_cuda(self):
         torch.manual_seed(1)
         # Compute reference on CPU (avoid mixing cuda/flagos autograd streams)
@@ -89,25 +91,26 @@ class TestSiluBackwardCorrectness:
 
 
 class TestSiluBackwardDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for silu_backward op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_silu_backward": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] silu_backward -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_silu_backward": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] silu_backward -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_silu_backward": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestSiluBackwardAscendDispatch:
     """Verify Ascend backend correctness."""

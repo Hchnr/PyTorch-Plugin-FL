@@ -3,8 +3,8 @@ where.self dispatch tests
 
 Verifies that torch.where (condition, self, other):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_where_dispatch.py -v
@@ -15,6 +15,7 @@ import pytest
 import subprocess
 import sys
 
+import pytest
 import torch
 import torch_fl  # noqa: F401
 
@@ -54,7 +55,6 @@ class TestWhereCorrectness:
 
     @pytest.mark.anyplatform
     def test_matches_cpu(self):
-        torch.manual_seed(0)
         x = torch.randn(32, 32, device=DEVICE)
         y = torch.randn(32, 32, device=DEVICE)
         cond = x > 0
@@ -82,25 +82,26 @@ class TestWhereCorrectness:
 
 
 class TestWhereDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for where.self op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_where__self": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] where.self -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_where__self": "cuda"}
         )
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] where.self -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_where__self": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestWhereAscendDispatch:
     """Verify Ascend backend correctness."""

@@ -139,9 +139,6 @@ CUDA 平台无此限制。
 # 必须：告知 FlagGems C++ native API Triton kernel 源码位置
 export FLAGGEMS_SOURCE_DIR=$(python -c "import os;import flag_gems;print(os.path.dirname(flag_gems.__file__))")
 
-# 关闭 FlagGems Python 层注册
-export FLAGOS_DISABLE_FLAGGEMS_PY=1
-
 python your_script.py
 ```
 
@@ -216,6 +213,22 @@ FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/fla
 # Qwen3 训练测试（单卡）
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
   pytest tests/integration/test_qwen3_train.py -v -s --steps 10
+
+# 仅运行 CUDA 相关测试
+pytest tests/integration/ops/ -v -m cuda
+
+# 仅运行 FlagGems (Triton) 后端测试
+pytest tests/integration/ops/ -v -m flaggems
+
+# 仅运行 FlagGems Python wrapper 测试
+pytest tests/integration/ops/ -v -m flaggems_python
+
+# 仅运行平台无关的正确性测试
+pytest tests/integration/ops/ -v -m anyplatform
+
+# FlagGems Python wrapper (flagos_python) 端到端测试
+FLAGOS_BACKEND_CONFIG=torch_fl/backends_flagos_py.conf \
+  pytest tests/integration/ops/ -v
 ```
 
 ### Ascend 平台
@@ -237,6 +250,20 @@ FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf
 **注意**：Ascend 平台必须设置 `FLAGOS_DISABLE_FLAGGEMS_PY=1` 以跳过 FlagGems Python 层注册，否则会因 NPU 设备检测问题导致崩溃。FlagGems 在 Ascend 平台上是可选的。
 
 `test_qwen3_infer.py` 和 `test_qwen3_train.py` 在所有平台上使用相同代码，仅安装方式（`ACCELERATOR=ascend pip install -e .`）和运行时环境变量不同。
+
+### Pytest Marks
+
+`tests/integration/ops/` 中的算子测试使用 pytest mark 标记平台/后端依赖：
+
+| Mark | 说明 |
+|------|------|
+| `@pytest.mark.anyplatform` | 平台无关的正确性测试（shape、dtype、broadcast） |
+| `@pytest.mark.cuda` | 需要 CUDA 后端或 CUDA 参考对比 |
+| `@pytest.mark.flaggems` | 需要 FlagGems (Triton) 后端 |
+| `@pytest.mark.flaggems_python` | 需要 FlagGems Python wrapper (pybind11 路径) |
+| `@pytest.mark.ascend` | 需要 Ascend NPU 后端 |
+
+使用 `-m <mark>` 运行特定类别的测试，例如：`pytest tests/integration/ops/ -m cuda` 仅运行 CUDA 测试。
 
 ## 项目结构
 

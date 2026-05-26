@@ -3,7 +3,8 @@ sum.dim_IntList dispatch tests
 
 Verifies that torch.sum (dim variant):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_sum_dispatch.py -v
@@ -106,25 +107,26 @@ class TestSumDimCorrectness:
 
 
 class TestSumDimDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for sum.dim_IntList op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_sum__dim_IntList": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] sum.dim_IntList -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_sum__dim_IntList": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] sum.dim_IntList -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_sum__dim_IntList": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestSumDimAscendDispatch:
     """Verify Ascend backend correctness."""

@@ -3,8 +3,8 @@ cos dispatch tests
 
 Verifies that torch.cos:
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_cos_dispatch.py -v
@@ -79,26 +79,26 @@ class TestCosCorrectness:
 
 
 class TestCosDispatch:
-    """Verify dispatch routing and flaggems backend rejection."""
+    """Verify dispatch routing for cos op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_cos_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_cos": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] cos -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_cos_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_cos": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] cos -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        """Selecting flaggems backend must fail — not implemented."""
-        result = _run_cos_subprocess(
-            {"FLAGOS_OP_cos": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestCosAscendDispatch:
     """Verify Ascend backend correctness."""

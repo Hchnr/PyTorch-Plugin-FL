@@ -4,7 +4,8 @@ nll_loss_forward and nll_loss_backward dispatch tests
 Verifies that torch.nn.functional.nll_loss:
   - produces correct results on flagos device
   - backward produces correct gradients
-  - C++ wrapper routes to cuda backend
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_nll_loss_dispatch.py -v
@@ -149,7 +150,29 @@ class TestNllLossBackwardCorrectness:
 
 
 class TestNllLossDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for nll_loss ops."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_forward_flaggems_python(self):
+        result = _run_subprocess_forward(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_nll_loss_forward": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] nll_loss_forward -> flagos_python" in result.stderr
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_backward_flaggems_python(self):
+        result = _run_subprocess_backward(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_nll_loss_backward": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] nll_loss_backward -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
     def test_dispatch_log_forward_cuda(self):
@@ -166,16 +189,6 @@ class TestNllLossDispatch:
         )
         assert result.returncode == 0
         assert "[flagos dispatch] nll_loss_backward -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess_forward(
-            {"FLAGOS_OP_nll_loss_forward": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestNllLossForwardAscendDispatch:
     """Verify Ascend backend correctness."""

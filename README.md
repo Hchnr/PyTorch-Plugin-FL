@@ -137,9 +137,6 @@ You can disable the FlagGems Python-layer registration entirely, leaving only th
 # Required: tell FlagGems C++ native API where to find Triton kernel sources
 export FLAGGEMS_SOURCE_DIR=$(python -c "import os;import flag_gems;print(os.path.dirname(flag_gems.__file__))")
 
-# Disable Python-layer FlagGems registration
-export FLAGOS_DISABLE_FLAGGEMS_PY=1
-
 python your_script.py
 ```
 
@@ -214,6 +211,22 @@ FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/fla
 # Qwen3 training test (single GPU)
 FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGGEMS_SOURCE_DIR=/path_to_repos/FlagGems/src/flag_gems \
   pytest tests/integration/test_qwen3_train.py -v -s --steps 10
+
+# Run only CUDA-specific tests
+pytest tests/integration/ops/ -v -m cuda
+
+# Run only FlagGems (Triton) backend tests
+pytest tests/integration/ops/ -v -m flaggems
+
+# Run only FlagGems Python wrapper tests
+pytest tests/integration/ops/ -v -m flaggems_python
+
+# Run platform-agnostic correctness tests
+pytest tests/integration/ops/ -v -m anyplatform
+
+# FlagGems Python wrapper (flagos_python) end-to-end tests
+FLAGOS_BACKEND_CONFIG=torch_fl/backends_flagos_py.conf \
+  pytest tests/integration/ops/ -v
 ```
 
 ### Ascend Platform
@@ -236,6 +249,20 @@ FLAGOS_DISABLE_FLAGGEMS_PY=1 FLAGOS_BACKEND_CONFIG=torch_fl/backends_ascend.conf
 
 The `test_qwen3_infer.py` and `test_qwen3_train.py` tests use the same code on all platforms — only the installation method (`ACCELERATOR=ascend pip install -e .`) and runtime environment variables differ.
 
+### Pytest Marks
+
+Operator tests in `tests/integration/ops/` use pytest marks to indicate platform/backend requirements:
+
+| Mark | Description |
+|------|-------------|
+| `@pytest.mark.anyplatform` | Platform-agnostic correctness tests (shape, dtype, broadcast) |
+| `@pytest.mark.cuda` | Requires CUDA backend or CUDA reference comparison |
+| `@pytest.mark.flaggems` | Requires FlagGems (Triton) backend |
+| `@pytest.mark.flaggems_python` | Requires FlagGems Python wrapper (pybind11 path) |
+| `@pytest.mark.ascend` | Requires Ascend NPU backend |
+
+Use `-m <mark>` to run specific test categories. Example: `pytest tests/integration/ops/ -m cuda` runs only CUDA tests.
+
 ## Project Structure
 
 ```
@@ -243,6 +270,10 @@ PyTorch-Plugin-FL/
 ├── include/                  # Public headers
 │   ├── flagos.h              #   Unified runtime API (memory, stream, device)
 │   └── macros.h              #   Common macros
+├── accelerator/              # Hardware abstraction layer
+│   ├── csrc/cuda/            #   CUDA runtime implementation
+│   ├── csrc/maca/            #   MACA cudart shim (symbol version compatibility)
+│   └── csrc/ascend/          #   Ascend runtime (ACL-based memory, stream, device)
 ├── csrc/
 │   ├── aten/                 # ATen operator layer
 │   │   ├── common.{h,cc}     #   Backend config loading, FlagosDevice enum
@@ -250,6 +281,8 @@ PyTorch-Plugin-FL/
 │   │   ├── device_boxing.h   #   Zero-copy flagos↔CUDA tensor metadata conversion
 │   │   ├── register.cc       #   PrivateUse1 dispatch key registration
 │   │   ├── {op}.{h,cc}       #   Per-operator stub definitions (add, mm, silu, etc.)
+│   │   ├── factory_ops/      #   Basic operators (empty, copy, contiguous, set, fallback)
+│   │   ├── functional_ops/   #   Compute operators (mm, bmm, cat, embedding, softmax, etc.)
 │   │   └── backends/         #   Backend-specific kernel implementations
 │   │       ├── cuda/         #     CUDA kernels (cuBLAS, modified PyTorch kernels)
 │   │       ├── flagos/       #     FlagGems C++ native API wrappers

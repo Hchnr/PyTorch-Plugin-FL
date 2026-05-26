@@ -3,8 +3,8 @@ bitwise_and.Tensor dispatch tests
 
 Verifies that torch.bitwise_and (Tensor variant):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_bitwise_and_dispatch.py -v
@@ -15,6 +15,7 @@ import pytest
 import subprocess
 import sys
 
+import pytest
 import torch
 import torch_fl  # noqa: F401
 
@@ -69,25 +70,26 @@ class TestBitwiseAndCorrectness:
 
 
 class TestBitwiseAndDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for bitwise_and.Tensor op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_bitwise_and__Tensor": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] bitwise_and.Tensor -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_bitwise_and__Tensor": "cuda"}
         )
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] bitwise_and.Tensor -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_bitwise_and__Tensor": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestBitwiseAndAscendDispatch:
     """Verify Ascend backend correctness."""

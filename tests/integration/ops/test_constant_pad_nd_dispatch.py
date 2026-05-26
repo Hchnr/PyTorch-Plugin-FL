@@ -3,7 +3,8 @@ constant_pad_nd dispatch tests
 
 Verifies that torch.nn.functional.pad (constant mode):
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_constant_pad_nd_dispatch.py -v
@@ -81,25 +82,26 @@ class TestConstantPadNdCorrectness:
 
 
 class TestConstantPadNdDispatch:
-    """Verify dispatch routing."""
+    """Verify dispatch routing for constant_pad_nd op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_constant_pad_nd": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] constant_pad_nd -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_constant_pad_nd": "cuda"}
         )
         assert result.returncode == 0
         assert "[flagos dispatch] constant_pad_nd -> cuda" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        result = _run_subprocess(
-            {"FLAGOS_OP_constant_pad_nd": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestConstantPadNdAscendDispatch:
     """Verify Ascend backend correctness."""

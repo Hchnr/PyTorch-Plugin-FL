@@ -142,7 +142,18 @@ class TestEmbeddingDispatch:
 class TestEmbeddingDispatchLog:
     """Verify C++ wrapper routes to correct backend."""
 
-    @pytest.mark.cuda
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_embedding_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_embedding": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] embedding -> flagos_python" in result.stderr
+
+    @pytest.mark.flaggems
     def test_dispatch_log_flagos_default(self):
         """Default routes embedding to flagos."""
         result = _run_embedding_subprocess(
@@ -154,7 +165,6 @@ class TestEmbeddingDispatchLog:
 
     @pytest.mark.cuda
     def test_dispatch_log_cuda_override(self):
-        """FLAGOS_OP_embedding=cuda overrides to cuda."""
         result = _run_embedding_subprocess(
             {
                 "FLAGOS_LOG_DISPATCH": "1",

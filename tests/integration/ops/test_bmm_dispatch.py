@@ -123,7 +123,17 @@ class TestBmmDispatch:
 class TestBmmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
-    @pytest.mark.cuda
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        """FLAGOS_OP_bmm=flaggems_python routes bmm to flagos_python backend."""
+        result = _run_bmm_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_bmm": "flaggems_python"},
+            check=False,
+        )
+        assert "[flagos dispatch] bmm -> flagos_python" in result.stderr, (
+            f"Expected flagos_python dispatch log, got:\n{result.stderr}"
+        )
+
     def test_dispatch_log_flagos_default(self):
         """Default config routes bmm to flagos."""
         result = _run_bmm_subprocess(

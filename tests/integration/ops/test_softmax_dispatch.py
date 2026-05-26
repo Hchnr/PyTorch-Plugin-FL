@@ -90,7 +90,15 @@ class TestSoftmaxCorrectness:
 class TestSoftmaxDispatch:
     """Verify C++ wrapper routes to the correct backend."""
 
-    @pytest.mark.cuda
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_softmax_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP__softmax": "flaggems_python"},
+            check=False,
+        )
+        assert "[flagos dispatch] _softmax -> flagos_python" in result.stderr
+
+    @pytest.mark.flaggems
     def test_dispatch_log_flagos(self):
         result = _run_softmax_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP__softmax": "flaggems"}

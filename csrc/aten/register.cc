@@ -14,6 +14,10 @@
 #include "add.h"
 #include "silu.h"
 #include "neg.h"
+
+// Ascend development: only register implemented ops above.
+// Unregistered ops fall through to WrapperCpuFallback automatically.
+#ifndef USE_ASCEND
 #include "bmm.h"
 #include "cat.h"
 #include "embedding.h"
@@ -39,6 +43,9 @@
 #include "constant_pad_nd.h"
 #include "embedding_dense_backward.h"
 #include "nll_loss.h"
+#include "abs.h"
+#include "acos.h"
+#endif // USE_ASCEND
 
 #include <ATen/native/CPUFallback.h>
 
@@ -184,6 +191,7 @@ at::Tensor& WrapperMmOut(const at::Tensor& self, const at::Tensor& mat2, at::Ten
 }
 
 
+
 at::Tensor WrapperAddTensor(
     const at::Tensor& self, const at::Tensor& other, const at::Scalar& alpha) {
   return at::native::flagos::add_tensor_stub(self, other, alpha);
@@ -207,6 +215,7 @@ at::Tensor WrapperNeg(const at::Tensor& self) {
   return at::native::flagos::neg_stub(self);
 }
 
+#ifndef USE_ASCEND
 at::Tensor WrapperBmm(const at::Tensor& self, const at::Tensor& mat2) {
   auto out = at::empty({self.size(0), self.size(1), mat2.size(2)}, self.options());
   at::native::flagos::StructuredBmmOut op(out);
@@ -365,6 +374,15 @@ at::Tensor WrapperNllLossBackward(
       grad_output, self, target, weight, reduction, ignore_index, total_weight);
 }
 
+at::Tensor WrapperAbs(const at::Tensor& self) {
+  return at::native::flagos::abs_stub(self);
+}
+
+at::Tensor WrapperAcos(const at::Tensor& self) {
+  return at::native::flagos::acos_stub(self);
+}
+#endif // USE_ASCEND
+
 } // namespace
 
 // Register basic operators for PrivateUse1 dispatch key
@@ -393,6 +411,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("add.Scalar", WrapperAddScalar);
   m.impl("silu", WrapperSilu);
   m.impl("neg", WrapperNeg);
+#ifndef USE_ASCEND
   m.impl("bmm", WrapperBmm);
   m.impl("bmm.out", WrapperBmmOut);
   m.impl("cat", WrapperCat);
@@ -420,6 +439,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
   m.impl("embedding_dense_backward", WrapperEmbeddingDenseBackward);
   m.impl("nll_loss_forward", WrapperNllLossForward);
   m.impl("nll_loss_backward", WrapperNllLossBackward);
+  m.impl("abs", WrapperAbs);
+  m.impl("acos", WrapperAcos);
+#endif // USE_ASCEND
 }
 
 // Register fallback for all unimplemented operators

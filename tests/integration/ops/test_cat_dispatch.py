@@ -141,7 +141,18 @@ class TestCatDispatch:
 class TestCatDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
-    @pytest.mark.cuda
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        """FLAGOS_OP_cat=flaggems_python routes cat to flagos_python backend."""
+        result = _run_cat_subprocess(
+            {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_cat": "flaggems_python"},
+            check=False,
+        )
+        assert "[flagos dispatch] cat -> flagos_python" in result.stderr, (
+            f"Expected flagos_python dispatch log, got:\n{result.stderr}"
+        )
+
+    @pytest.mark.flaggems
     def test_dispatch_log_flagos_default(self):
         """Default config routes cat to flagos."""
         result = _run_cat_subprocess(

@@ -3,8 +3,8 @@ silu dispatch tests
 
 Verifies that torch.nn.functional.silu:
   - produces correct results on flagos device
-  - C++ wrapper routes to cuda backend
-  - attempting flaggems backend raises an error (not implemented)
+  - C++ wrapper routes to flaggems_python backend (default)
+  - dispatch log confirms the actual backend used
 
 Usage:
     pytest tests/integration/ops/test_silu_dispatch.py -v
@@ -74,10 +74,21 @@ class TestSiluCorrectness:
 
 
 class TestSiluDispatch:
-    """Verify dispatch routing and flaggems backend rejection."""
+    """Verify dispatch routing for silu op."""
+
+    @pytest.mark.flaggems_python
+    def test_dispatch_log_flaggems_python(self):
+        result = _run_silu_subprocess(
+            {
+                "FLAGOS_LOG_DISPATCH": "1",
+                "FLAGOS_OP_silu": "flaggems_python",
+            },
+            check=False,
+        )
+        assert "[flagos dispatch] silu -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
-    def test_dispatch_log_cuda(self):
+    def test_dispatch_log_cuda_override(self):
         result = _run_silu_subprocess(
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_silu": "cuda"}
         )
@@ -91,17 +102,6 @@ class TestSiluDispatch:
         )
         assert result.returncode == 0
         assert "[flagos dispatch] silu -> ascend" in result.stderr
-
-    @pytest.mark.cuda
-    def test_flaggems_backend_raises_error(self):
-        """Selecting flaggems backend must fail — not implemented."""
-        result = _run_silu_subprocess(
-            {"FLAGOS_OP_silu": "flaggems"},
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "backend not registered" in result.stderr
-
 
 class TestSiluAscendDispatch:
     """Verify Ascend backend correctness."""
