@@ -22,9 +22,7 @@ import torch_fl  # noqa: F401
 DEVICE = "flagos:0"
 
 
-def _run_subprocess(
-    extra_env: dict, check: bool = True
-) -> subprocess.CompletedProcess:
+def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -63,9 +61,7 @@ class TestNewOnesCorrectness:
         x = torch.randn(4, 4, device=DEVICE)
         out = x.new_ones(2, 2, dtype=torch.int32)
         assert out.dtype == torch.int32
-        torch.testing.assert_close(
-            out.cpu(), torch.ones(2, 2, dtype=torch.int32)
-        )
+        torch.testing.assert_close(out.cpu(), torch.ones(2, 2, dtype=torch.int32))
 
     @pytest.mark.anyplatform
     def test_all_ones(self):

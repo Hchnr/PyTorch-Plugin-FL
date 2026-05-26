@@ -21,9 +21,7 @@ import torch_fl  # noqa: F401
 DEVICE = "flagos:0"
 
 
-def _run_subprocess(
-    extra_env: dict, check: bool = True
-) -> subprocess.CompletedProcess:
+def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -51,9 +49,7 @@ class TestOnesLikeCorrectness:
         assert out.device.type == "flagos"
         assert torch.all(out.cpu() == 1.0)
 
-    @pytest.mark.parametrize(
-        "dtype", [torch.float32, torch.float16, torch.bfloat16]
-    )
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
     @pytest.mark.anyplatform
     def test_ones_like_dtype(self, dtype):
         a = torch.randn(8, 8, device=DEVICE, dtype=dtype)

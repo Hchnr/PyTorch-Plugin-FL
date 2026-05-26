@@ -101,7 +101,10 @@ class TestEmbeddingDenseBackwardDispatch:
             },
             check=False,
         )
-        assert "[flagos dispatch] embedding_dense_backward -> flagos_python" in result.stderr
+        assert (
+            "[flagos dispatch] embedding_dense_backward -> flagos_python"
+            in result.stderr
+        )
 
     @pytest.mark.cuda
     def test_dispatch_log_cuda_override(self):

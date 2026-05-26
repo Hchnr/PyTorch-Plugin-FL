@@ -20,9 +20,7 @@ import torch_fl  # noqa: F401
 DEVICE = "flagos:0"
 
 
-def _run_subprocess(
-    extra_env: dict, check: bool = True
-) -> subprocess.CompletedProcess:
+def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -67,22 +65,16 @@ class TestMulScalarCorrectness:
         ref = torch.mul(a_cuda, 5.0)
         a = a_cuda.to(DEVICE)
         out = torch.mul(a, 5.0)
-        torch.testing.assert_close(
-            out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4
-        )
+        torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
-    @pytest.mark.parametrize(
-        "dtype", [torch.float32, torch.float16, torch.bfloat16]
-    )
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
     @pytest.mark.anyplatform
     def test_mul_scalar_dtype(self, dtype):
         torch.manual_seed(3)
         a = torch.randn(16, 16, device=DEVICE, dtype=dtype)
         out = torch.mul(a, 2.0)
         ref = a.cpu().float() * 2.0
-        torch.testing.assert_close(
-            out.cpu().float(), ref, rtol=1e-2, atol=1e-2
-        )
+        torch.testing.assert_close(out.cpu().float(), ref, rtol=1e-2, atol=1e-2)
 
 
 class TestMulScalarDispatch:
@@ -97,10 +89,7 @@ class TestMulScalarDispatch:
             },
             check=False,
         )
-        assert (
-            "[flagos dispatch] mul.Scalar -> flagos_python"
-            in result.stderr
-        )
+        assert "[flagos dispatch] mul.Scalar -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
     def test_dispatch_log_cuda_override(self):
@@ -108,6 +97,4 @@ class TestMulScalarDispatch:
             {"FLAGOS_LOG_DISPATCH": "1", "FLAGOS_OP_mul__Scalar": "cuda"}
         )
         assert result.returncode == 0
-        assert (
-            "[flagos dispatch] mul.Scalar -> cuda" in result.stderr
-        )
+        assert "[flagos dispatch] mul.Scalar -> cuda" in result.stderr

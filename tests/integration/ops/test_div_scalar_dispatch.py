@@ -21,9 +21,7 @@ import torch_fl  # noqa: F401
 DEVICE = "flagos:0"
 
 
-def _run_subprocess(
-    extra_env: dict, check: bool = True
-) -> subprocess.CompletedProcess:
+def _run_subprocess(extra_env: dict, check: bool = True) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env.update(extra_env)
     code = (
@@ -68,22 +66,16 @@ class TestDivScalarCorrectness:
         ref = torch.div(a_cuda, 5.0)
         a = a_cuda.to(DEVICE)
         out = torch.div(a, 5.0)
-        torch.testing.assert_close(
-            out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4
-        )
+        torch.testing.assert_close(out.cpu(), ref.cpu(), rtol=1e-4, atol=1e-4)
 
-    @pytest.mark.parametrize(
-        "dtype", [torch.float32, torch.float16, torch.bfloat16]
-    )
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
     @pytest.mark.anyplatform
     def test_div_scalar_dtype(self, dtype):
         torch.manual_seed(3)
         a = torch.randn(16, 16, device=DEVICE, dtype=dtype)
         out = torch.div(a, 2.0)
         ref = a.cpu().float() / 2.0
-        torch.testing.assert_close(
-            out.cpu().float(), ref, rtol=1e-2, atol=1e-2
-        )
+        torch.testing.assert_close(out.cpu().float(), ref, rtol=1e-2, atol=1e-2)
 
 
 class TestDivScalarDispatch:
@@ -98,10 +90,7 @@ class TestDivScalarDispatch:
             },
             check=False,
         )
-        assert (
-            "[flagos dispatch] div.Scalar -> flagos_python"
-            in result.stderr
-        )
+        assert "[flagos dispatch] div.Scalar -> flagos_python" in result.stderr
 
     @pytest.mark.cuda
     def test_dispatch_log_cuda_override(self):
@@ -112,6 +101,4 @@ class TestDivScalarDispatch:
             }
         )
         assert result.returncode == 0
-        assert (
-            "[flagos dispatch] div.Scalar -> cuda" in result.stderr
-        )
+        assert "[flagos dispatch] div.Scalar -> cuda" in result.stderr
