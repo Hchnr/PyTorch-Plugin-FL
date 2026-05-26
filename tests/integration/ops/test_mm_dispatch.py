@@ -71,6 +71,7 @@ class TestMmDispatch:
     """torch.mm correctness and cross-device consistency."""
 
     @pytest.mark.parametrize("M,K,N", [(128, 256, 64), (1, 1, 1), (512, 512, 512)])
+    @pytest.mark.anyplatform
     def test_mm_shape(self, M, K, N):
         torch.manual_seed(0)
         a = torch.randn(M, K, device=DEVICE, dtype=torch.float32)
@@ -79,6 +80,7 @@ class TestMmDispatch:
         assert out.shape == (M, N)
         assert out.device.type == "flagos"
 
+    @pytest.mark.anyplatform
     def test_mm_out(self):
         torch.manual_seed(1)
         a = torch.randn(64, 128, device=DEVICE, dtype=torch.float32)
@@ -88,6 +90,7 @@ class TestMmDispatch:
         assert ret.data_ptr() == out.data_ptr()
         assert out.shape == (64, 32)
 
+    @pytest.mark.cuda
     def test_mm_matches_cuda_ref(self, cuda_ref):
         """flagos mm result must match CUDA reference."""
         if cuda_ref is None:
@@ -104,6 +107,7 @@ class TestMmDispatch:
             msg="mm result on flagos differs from CUDA reference",
         )
 
+    @pytest.mark.anyplatform
     def test_mm_non_contiguous(self):
         torch.manual_seed(2)
         a = torch.randn(64, 128, device=DEVICE).t()
@@ -111,6 +115,7 @@ class TestMmDispatch:
         out = torch.mm(a, b)
         assert out.shape == (128, 32)
 
+    @pytest.mark.anyplatform
     def test_mm_half(self):
         torch.manual_seed(3)
         a = torch.randn(64, 128, device=DEVICE, dtype=torch.float16)
@@ -123,6 +128,7 @@ class TestMmDispatch:
 class TestMmDispatchLog:
     """Verify C++ wrapper routes to the correct backend."""
 
+    @pytest.mark.flaggems
     def test_dispatch_log_flagos_flaggems_override(self):
         """FLAGOS_OP_mm=flaggems routes mm to flagos backend."""
         result = _run_mm_subprocess(
@@ -132,6 +138,7 @@ class TestMmDispatchLog:
             f"Expected flagos dispatch log, got:\n{result.stderr}"
         )
 
+    @pytest.mark.cuda
     def test_dispatch_log_cuda_override(self):
         """FLAGOS_OP_mm=cuda overrides to cuda backend."""
         result = _run_mm_subprocess(
@@ -141,6 +148,7 @@ class TestMmDispatchLog:
             f"Expected cuda dispatch log, got:\n{result.stderr}"
         )
 
+    @pytest.mark.flaggems
     def test_dispatch_log_mm_out_flagos_flaggems_override(self):
         """FLAGOS_OP_mm__out=flaggems routes mm.out to flagos backend."""
         result = _run_mm_subprocess(
@@ -151,6 +159,7 @@ class TestMmDispatchLog:
             f"Expected flagos dispatch log, got:\n{result.stderr}"
         )
 
+    @pytest.mark.cuda
     def test_dispatch_log_mm_out_cuda_override(self):
         """FLAGOS_OP_mm__out=cuda overrides mm.out to cuda."""
         result = _run_mm_subprocess(
