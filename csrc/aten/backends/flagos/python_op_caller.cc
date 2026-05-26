@@ -1,6 +1,7 @@
 // Copyright (c) 2026, BAAI. All rights reserved.
 
 #include "python_op_caller.h"
+#include "../../device_boxing.h"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -50,18 +51,27 @@ PythonOpCache& GetCache() {
 }
 
 // Convert at::Tensor to Python THPVariable (borrowed ref wrapped in py::object)
+// Boxes device to CUDA so Triton/FlagGems can access the data pointer.
 py::object TensorToPython(const at::Tensor& t) {
   if (!t.defined()) return py::none();
+  if (t.device().type() == c10::DeviceType::PrivateUse1) {
+    BoxToCuda(t);
+  }
   PyObject* obj = THPVariable_Wrap(t);
   return py::reinterpret_steal<py::object>(obj);
 }
 
 // Convert Python THPVariable back to at::Tensor
+// Unboxes device back to flagos (PrivateUse1).
 at::Tensor PythonToTensor(const py::object& obj) {
   if (obj.is_none()) return at::Tensor();
   PyObject* raw = obj.ptr();
   TORCH_CHECK(THPVariable_Check(raw), "Expected a Tensor from Python op");
-  return THPVariable_Unpack(raw);
+  at::Tensor result = THPVariable_Unpack(raw);
+  if (result.defined() && result.device().type() == c10::DeviceType::CUDA) {
+    UnboxToFlagos(result);
+  }
+  return result;
 }
 
 // Convert at::Scalar to Python
