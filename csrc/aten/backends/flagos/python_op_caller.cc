@@ -202,7 +202,7 @@ at::Tensor CallPythonOp_TOIB(const char* func_name, const at::Tensor& self,
       TensorToPython(self),
       OptionalIntArrayRefToPython(dim),
       py::bool_(keepdim),
-      OptionalDtypeToPython(dtype));
+      "dtype"_a = OptionalDtypeToPython(dtype));
   return PythonToTensor(result);
 }
 
