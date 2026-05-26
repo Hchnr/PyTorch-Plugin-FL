@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
 namespace at::native::flagos {
 
@@ -147,7 +148,7 @@ at::Tensor CallPythonOp_TTS(const char* func_name, const at::Tensor& a, const at
   cache.EnsureInitialized();
   py::gil_scoped_acquire gil;
   auto func = cache.GetFunc(func_name);
-  py::object result = func(TensorToPython(a), TensorToPython(b), ScalarToPython(alpha));
+  py::object result = func(TensorToPython(a), TensorToPython(b), "alpha"_a = ScalarToPython(alpha));
   return PythonToTensor(result);
 }
 
