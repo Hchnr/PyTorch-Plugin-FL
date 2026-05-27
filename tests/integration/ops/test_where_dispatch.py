@@ -103,6 +103,7 @@ class TestWhereDispatch:
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] where.self -> cuda" in result.stderr
 
+
 class TestWhereAscendDispatch:
     """Verify Ascend backend correctness."""
 

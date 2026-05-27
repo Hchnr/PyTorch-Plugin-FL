@@ -121,6 +121,7 @@ class TestPowTensorScalarDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] pow.Tensor_Scalar -> cuda" in result.stderr
 
+
 class TestPowTensorScalarAscendDispatch:
     """Verify Ascend backend correctness."""
 

@@ -113,6 +113,7 @@ class TestNegDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] neg -> ascend" in result.stderr
 
+
 class TestNegAscendDispatch:
     """Verify Ascend backend correctness."""
 

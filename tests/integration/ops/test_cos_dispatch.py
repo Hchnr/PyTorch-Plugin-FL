@@ -100,6 +100,7 @@ class TestCosDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] cos -> cuda" in result.stderr
 
+
 class TestCosAscendDispatch:
     """Verify Ascend backend correctness."""
 

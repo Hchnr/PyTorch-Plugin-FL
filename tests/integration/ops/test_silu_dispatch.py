@@ -103,6 +103,7 @@ class TestSiluDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] silu -> ascend" in result.stderr
 
+
 class TestSiluAscendDispatch:
     """Verify Ascend backend correctness."""
 

@@ -116,6 +116,7 @@ class TestAddTensorDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] add.Tensor -> ascend" in result.stderr
 
+
 class TestAddTensorAscendDispatch:
     """Verify Ascend backend correctness."""
 

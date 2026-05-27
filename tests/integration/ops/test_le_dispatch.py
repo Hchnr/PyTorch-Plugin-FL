@@ -98,6 +98,7 @@ class TestLeDispatch:
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] le.Tensor -> cuda" in result.stderr
 
+
 class TestLeAscendDispatch:
     """Verify Ascend backend correctness."""
 

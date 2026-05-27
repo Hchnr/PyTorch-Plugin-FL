@@ -103,6 +103,7 @@ class TestConstantPadNdDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] constant_pad_nd -> cuda" in result.stderr
 
+
 class TestConstantPadNdAscendDispatch:
     """Verify Ascend backend correctness."""
 

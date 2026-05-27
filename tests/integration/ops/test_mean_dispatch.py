@@ -110,6 +110,7 @@ class TestMeanDimDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] mean.dim -> cuda" in result.stderr
 
+
 class TestMeanDimAscendDispatch:
     """Verify Ascend backend correctness."""
 

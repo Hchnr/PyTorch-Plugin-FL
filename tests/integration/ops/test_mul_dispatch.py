@@ -99,6 +99,7 @@ class TestMulTensorDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] mul.Tensor -> cuda" in result.stderr
 
+
 class TestMulTensorAscendDispatch:
     """Verify Ascend backend correctness."""
 

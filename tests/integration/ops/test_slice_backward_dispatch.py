@@ -112,6 +112,7 @@ class TestSliceBackwardDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] slice_backward -> cuda" in result.stderr
 
+
 class TestSliceBackwardAscendDispatch:
     """Verify Ascend backend correctness."""
 

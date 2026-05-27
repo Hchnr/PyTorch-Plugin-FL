@@ -128,6 +128,7 @@ class TestSumDimDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] sum.dim_IntList -> cuda" in result.stderr
 
+
 class TestSumDimAscendDispatch:
     """Verify Ascend backend correctness."""
 

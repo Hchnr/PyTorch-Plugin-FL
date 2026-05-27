@@ -112,6 +112,7 @@ class TestSiluBackwardDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] silu_backward -> cuda" in result.stderr
 
+
 class TestSiluBackwardAscendDispatch:
     """Verify Ascend backend correctness."""
 

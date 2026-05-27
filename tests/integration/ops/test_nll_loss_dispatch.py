@@ -190,6 +190,7 @@ class TestNllLossDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] nll_loss_backward -> cuda" in result.stderr
 
+
 class TestNllLossForwardAscendDispatch:
     """Verify Ascend backend correctness."""
 

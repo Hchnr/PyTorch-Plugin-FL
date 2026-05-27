@@ -126,6 +126,7 @@ class TestAllDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] all -> cuda" in result.stderr
 
+
 class TestAllAscendDispatch:
     """Verify Ascend backend correctness."""
 

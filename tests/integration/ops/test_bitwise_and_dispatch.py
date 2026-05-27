@@ -91,6 +91,7 @@ class TestBitwiseAndDispatch:
         assert result.returncode == 0, f"Failed:\n{result.stderr}"
         assert "[flagos dispatch] bitwise_and.Tensor -> cuda" in result.stderr
 
+
 class TestBitwiseAndAscendDispatch:
     """Verify Ascend backend correctness."""
 

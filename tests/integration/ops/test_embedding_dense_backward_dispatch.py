@@ -115,6 +115,7 @@ class TestEmbeddingDenseBackwardDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] embedding_dense_backward -> cuda" in result.stderr
 
+
 class TestEmbeddingDenseBackwardAscendDispatch:
     """Verify Ascend backend correctness."""
 

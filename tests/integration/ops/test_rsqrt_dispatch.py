@@ -94,6 +94,7 @@ class TestRsqrtDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] rsqrt -> cuda" in result.stderr
 
+
 class TestRsqrtAscendDispatch:
     """Verify Ascend backend correctness."""
 

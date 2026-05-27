@@ -100,6 +100,7 @@ class TestSinDispatch:
         assert result.returncode == 0
         assert "[flagos dispatch] sin -> cuda" in result.stderr
 
+
 class TestSinAscendDispatch:
     """Verify Ascend backend correctness."""
 
