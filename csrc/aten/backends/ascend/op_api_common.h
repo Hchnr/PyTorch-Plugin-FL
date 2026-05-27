@@ -231,6 +231,8 @@ struct AclTensorListWrapper {
     static void* getWorkspaceSizeFuncAddr = nullptr;                          \
     static void* initMemAddr = nullptr;                                       \
     static void* unInitMemAddr = nullptr;                                     \
+    static void* initPTACacheAddr = nullptr;                                  \
+    static void* setPTAHashKeyAddr = nullptr;                                 \
     at::native::flagos::ascend::GetApiFunc(                                   \
         #aclnn_api, #aclnn_api "GetWorkspaceSize",                            \
         opApiFuncAddr, getWorkspaceSizeFuncAddr);                              \
@@ -241,6 +243,12 @@ struct AclTensorListWrapper {
       }                                                                       \
       if (!unInitMemAddr) {                                                   \
         unInitMemAddr = dlsym(handle, "UnInitHugeMemThreadLocal");            \
+      }                                                                       \
+      if (!initPTACacheAddr) {                                                \
+        initPTACacheAddr = dlsym(handle, "InitPTACacheThreadLocal");          \
+      }                                                                       \
+      if (!setPTAHashKeyAddr) {                                               \
+        setPTAHashKeyAddr = dlsym(handle, "SetPTAHashKey");                   \
       }                                                                       \
     }                                                                         \
                                                                               \
@@ -254,6 +262,14 @@ struct AclTensorListWrapper {
                                                                               \
     typedef void (*InitMemFunc)(void*, bool);                                 \
     typedef void (*UnInitMemFunc)(void*, bool);                               \
+    typedef void (*InitPTACacheFunc)();                                        \
+    typedef void (*SetPTAHashKeyFunc)(uint64_t);                              \
+    if (initPTACacheAddr) {                                                   \
+      reinterpret_cast<InitPTACacheFunc>(initPTACacheAddr)();                 \
+    }                                                                         \
+    if (setPTAHashKeyAddr) {                                                  \
+      reinterpret_cast<SetPTAHashKeyFunc>(setPTAHashKeyAddr)(0);             \
+    }                                                                         \
     if (initMemAddr) {                                                        \
       reinterpret_cast<InitMemFunc>(initMemAddr)(nullptr, false);             \
     }                                                                         \
