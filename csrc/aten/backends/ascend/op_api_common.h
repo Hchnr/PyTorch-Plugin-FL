@@ -95,6 +95,19 @@ inline void* GetOpApiLibHandle() {
   return handle;
 }
 
+inline void* GetOpBaseLibHandle() {
+  static void* handle = []() -> void* {
+    void* h = dlopen("libnnopbase.so", RTLD_LAZY);
+    if (!h) {
+      const char* err = dlerror();
+      throw std::runtime_error(
+          std::string("Failed to load libnnopbase.so: ") + (err ? err : "unknown error"));
+    }
+    return h;
+  }();
+  return handle;
+}
+
 inline void GetApiFunc(const char* api_name, const char* workspace_name,
                        void*& api_func, void*& workspace_func) {
   void* handle = GetOpApiLibHandle();
@@ -222,7 +235,7 @@ struct AclTensorListWrapper {
         #aclnn_api, #aclnn_api "GetWorkspaceSize",                            \
         opApiFuncAddr, getWorkspaceSizeFuncAddr);                              \
     {                                                                         \
-      void* handle = at::native::flagos::ascend::GetOpApiLibHandle();         \
+      void* handle = at::native::flagos::ascend::GetOpBaseLibHandle();        \
       if (!initMemAddr) {                                                     \
         initMemAddr = dlsym(handle, "InitHugeMemThreadLocal");                \
       }                                                                       \
