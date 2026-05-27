@@ -19,10 +19,10 @@ std::tuple<at::Tensor, at::Tensor> NllLossForwardKernelAscend(
         {self.size(0)}, self.options());
   } else {
     output = ascend::OpPreparation::apply_tensor_without_format(
-        {}, self.options());
+        {1}, self.options());
   }
   auto total_weight = ascend::OpPreparation::apply_tensor_without_format(
-      {}, self.options());
+      {1}, self.options());
 
   ascend::AclTensorWrapper acl_self(self);
   ascend::AclTensorWrapper acl_target(target);
@@ -38,6 +38,11 @@ std::tuple<at::Tensor, at::Tensor> NllLossForwardKernelAscend(
     EXEC_ASCEND_CMD(aclnnNLLLoss, acl_self.get(), acl_target.get(),
                     nullptr, reduction, ignore_index,
                     acl_output.get(), acl_total_weight.get());
+  }
+
+  if (reduction != 0) {
+    output = output.squeeze(0);
+    total_weight = total_weight.squeeze(0);
   }
   return std::make_tuple(output, total_weight);
 }

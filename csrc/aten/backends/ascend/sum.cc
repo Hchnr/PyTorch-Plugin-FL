@@ -16,26 +16,27 @@ at::Tensor SumDimKernelAscend(const at::Tensor& self, at::OptionalIntArrayRef di
 
   // Normalize dims to positive values
   std::vector<int64_t> norm_dims;
-  if (dim.has_value()) {
+  if (dim.has_value() && !dim.value().empty()) {
     for (int64_t d : dim.value()) {
       norm_dims.push_back(d < 0 ? d + ndim : d);
+    }
+  } else {
+    // When dim is not specified or empty, reduce over all dimensions
+    for (int64_t d = 0; d < ndim; ++d) {
+      norm_dims.push_back(d);
     }
   }
 
   // Compute output shape
   auto out_shape = self.sizes().vec();
-  if (!norm_dims.empty()) {
-    std::vector<int64_t> sorted_dims(norm_dims);
-    std::sort(sorted_dims.rbegin(), sorted_dims.rend());
-    for (int64_t d : sorted_dims) {
-      if (keepdim) {
-        out_shape[d] = 1;
-      } else {
-        out_shape.erase(out_shape.begin() + d);
-      }
+  std::vector<int64_t> sorted_dims(norm_dims);
+  std::sort(sorted_dims.rbegin(), sorted_dims.rend());
+  for (int64_t d : sorted_dims) {
+    if (keepdim) {
+      out_shape[d] = 1;
+    } else {
+      out_shape.erase(out_shape.begin() + d);
     }
-  } else if (!dim.has_value()) {
-    out_shape = keepdim ? std::vector<int64_t>(ndim, 1) : std::vector<int64_t>{};
   }
 
   auto out = ascend::OpPreparation::apply_tensor_without_format(

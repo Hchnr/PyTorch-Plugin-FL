@@ -74,7 +74,7 @@ class TestAcosCorrectness:
         ref = torch.acos(a.cpu())
         torch.testing.assert_close(out.cpu(), ref, rtol=1e-5, atol=1e-5)
 
-    @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16])
     @pytest.mark.anyplatform
     def test_acos_dtypes(self, dtype):
         torch.manual_seed(2)
