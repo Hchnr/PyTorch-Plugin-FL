@@ -26,6 +26,6 @@ at::Tensor ZerosKernelCuda(
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(ZerosFn, zeros_stub, FlagosDevice::kCuda, ZerosKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(ZerosFn, zeros_dispatcher, FlagosDevice::kCuda, ZerosKernelCuda)
 
 } // namespace at::native::flagos

@@ -43,6 +43,6 @@ at::Tensor CatKernelPython(const at::ITensorListRef& tensors, int64_t dim) {
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(CatFn, cat_stub, FlagosDevice::kFlagOsPython, CatKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(CatFn, cat_dispatcher, FlagosDevice::kFlagOsPython, CatKernelPython)
 
 } // namespace at::native::flagos

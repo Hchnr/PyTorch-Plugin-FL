@@ -10,40 +10,40 @@
 
 namespace at::native::flagos {
 
-// Lightweight dispatch stub replacing PyTorch's DispatchStub.
+// Lightweight op dispatcher replacing PyTorch's DispatchStub.
 //
-// A stub owns a stub_name (e.g. "mm") and a set of per-backend kernel
-// pointers. Multiple ops can share one stub (e.g. "mm" and "mm.out"
+// A dispatcher owns an op_name (e.g. "mm") and a set of per-backend kernel
+// pointers. Multiple ops can share one dispatcher (e.g. "mm" and "mm.out"
 // share the same kernels). The op name used for config lookup and
 // logging is passed at the call site via DispatchAs(), or defaults
-// to stub_name via operator().
+// to the dispatcher's op_name via operator().
 //
 // Usage:
 //   // header:
 //   using MmFn = void(*)(const Tensor&, const Tensor&, Tensor&);
-//   FLAGOS_DECLARE_DISPATCH(MmFn, mm_stub)
+//   DECLARE_DISPATCHER(MmFn, mm_dispatcher)
 //
 //   // cpp:
-//   FLAGOS_DEFINE_DISPATCH(MmFn, mm_stub, "mm")
-//   FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kFlagOs, my_flagos_mm)
-//   FLAGOS_REGISTER_DISPATCH(MmFn, mm_stub, FlagosDevice::kCuda,   my_cuda_mm)
+//   ADD_IMPL_TO_DISPATCHER(MmFn, mm_dispatcher, "mm")
+//   REGISTER_IMPL_TO_DISPATCHER(MmFn, mm_dispatcher, FlagosDevice::kFlagOs, my_flagos_mm)
+//   REGISTER_IMPL_TO_DISPATCHER(MmFn, mm_dispatcher, FlagosDevice::kCuda,   my_cuda_mm)
 //
-//   // call (uses stub_name "mm" for config lookup):
-//   mm_stub(self, mat2, out);
+//   // call (uses op_name "mm" for config lookup):
+//   mm_dispatcher(self, mat2, out);
 //
 //   // call with op name override (uses "mm.out" for config lookup):
-//   mm_stub.DispatchAs("mm.out", self, mat2, out);
+//   mm_dispatcher.DispatchAs("mm.out", self, mat2, out);
 
 template <typename FnPtr>
-class FlagosDispatchStub {
+class FlagosDispatcher {
  public:
   // constexpr constructor ensures constant initialization (placed in .bss/.data
   // at load time), which is guaranteed to complete before any dynamic
   // initialization (DispatchRegistrar constructors). This eliminates the
   // static initialization order fiasco when DEFINE and REGISTER are in
   // different translation units.
-  constexpr explicit FlagosDispatchStub(const char* stub_name)
-      : stub_name_(stub_name) {}
+  constexpr explicit FlagosDispatcher(const char* op_name)
+      : op_name_(op_name) {}
 
   void RegisterKernel(FlagosDevice device, FnPtr fn) {
     switch (device) {
@@ -57,7 +57,7 @@ class FlagosDispatchStub {
 
   template <typename... Args>
   auto operator()(Args&&... args) const {
-    return DispatchAs(stub_name_, std::forward<Args>(args)...);
+    return DispatchAs(op_name_, std::forward<Args>(args)...);
   }
 
   template <typename... Args>
@@ -99,7 +99,7 @@ class FlagosDispatchStub {
     fprintf(stderr, "[flagos dispatch] %s -> %s\n", op_name.c_str(), name);
   }
 
-  const char* stub_name_ = nullptr;
+  const char* op_name_ = nullptr;
   FnPtr cuda_fn_           = nullptr;
   FnPtr flagos_fn_         = nullptr;
   FnPtr flagos_python_fn_  = nullptr;
@@ -110,24 +110,24 @@ class FlagosDispatchStub {
 namespace detail {
 template <typename FnPtr>
 struct DispatchRegistrar {
-  DispatchRegistrar(FlagosDispatchStub<FnPtr>& stub, FlagosDevice device, FnPtr fn) {
-    stub.RegisterKernel(device, fn);
+  DispatchRegistrar(FlagosDispatcher<FnPtr>& dispatcher, FlagosDevice device, FnPtr fn) {
+    dispatcher.RegisterKernel(device, fn);
   }
 };
 } // namespace detail
 
 } // namespace at::native::flagos
 
-#define FLAGOS_DECLARE_DISPATCH(fn_type, name) \
-  extern ::at::native::flagos::FlagosDispatchStub<fn_type> name;
+#define DECLARE_DISPATCHER(fn_type, name) \
+  extern ::at::native::flagos::FlagosDispatcher<fn_type> name;
 
-#define FLAGOS_DEFINE_DISPATCH(fn_type, name, stub_name) \
-  ::at::native::flagos::FlagosDispatchStub<fn_type> name(stub_name);
+#define ADD_IMPL_TO_DISPATCHER(fn_type, name, op_name) \
+  ::at::native::flagos::FlagosDispatcher<fn_type> name(op_name);
 
-#define FLAGOS_REGISTER_DISPATCH_UID2(fn_type, name, device, fn, uid) \
+#define REGISTER_IMPL_TO_DISPATCHER_UID2(fn_type, name, device, fn, uid) \
   __attribute__((used)) static ::at::native::flagos::detail::DispatchRegistrar<fn_type>    \
       name##_registrar_##uid(name, device, fn);
-#define FLAGOS_REGISTER_DISPATCH_UID(fn_type, name, device, fn, uid) \
-  FLAGOS_REGISTER_DISPATCH_UID2(fn_type, name, device, fn, uid)
-#define FLAGOS_REGISTER_DISPATCH(fn_type, name, device, fn) \
-  FLAGOS_REGISTER_DISPATCH_UID(fn_type, name, device, fn, __COUNTER__)
+#define REGISTER_IMPL_TO_DISPATCHER_UID(fn_type, name, device, fn, uid) \
+  REGISTER_IMPL_TO_DISPATCHER_UID2(fn_type, name, device, fn, uid)
+#define REGISTER_IMPL_TO_DISPATCHER(fn_type, name, device, fn) \
+  REGISTER_IMPL_TO_DISPATCHER_UID(fn_type, name, device, fn, __COUNTER__)

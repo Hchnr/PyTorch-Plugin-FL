@@ -272,7 +272,7 @@ PyTorch-Plugin-FL/
 ├── csrc/
 │   ├── aten/                 # ATen 算子层
 │   │   ├── common.{h,cc}     #   后端配置加载、FlagosDevice 枚举
-│   │   ├── dispatch_stub.h   #   轻量 dispatch stub（替代 PyTorch DispatchStub）
+│   │   ├── dispatcher.h      #   轻量算子 dispatcher（替代 PyTorch DispatchStub）
 │   │   ├── device_boxing.h   #   零拷贝 flagos↔CUDA tensor 元数据转换
 │   │   ├── register.cc       #   PrivateUse1 dispatch key 注册
 │   │   ├── {op}.{h,cc}       #   各算子 stub 定义（add、mm、silu 等）

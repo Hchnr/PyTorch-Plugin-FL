@@ -13,6 +13,6 @@ at::Tensor WhereSelfKernelPython(const at::Tensor& condition, const at::Tensor& 
 
 } // namespace
 
-FLAGOS_REGISTER_DISPATCH(WhereSelfFn, where_self_stub, FlagosDevice::kFlagOsPython, WhereSelfKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(WhereSelfFn, where_self_dispatcher, FlagosDevice::kFlagOsPython, WhereSelfKernelPython)
 
 } // namespace at::native::flagos

@@ -33,6 +33,6 @@ at::Tensor AcosKernelAscend(const at::Tensor& self) {
   return out;
 }
 
-FLAGOS_REGISTER_DISPATCH(AcosFn, acos_stub, FlagosDevice::kAscend, AcosKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(AcosFn, acos_dispatcher, FlagosDevice::kAscend, AcosKernelAscend)
 
 } // namespace at::native::flagos
