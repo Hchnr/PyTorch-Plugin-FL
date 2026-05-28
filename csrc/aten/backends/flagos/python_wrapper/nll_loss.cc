@@ -73,7 +73,7 @@ at::Tensor NllLossBackwardKernelPython(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(NllLossForwardFn, nll_loss_forward_dispatcher, FlagosDevice::kFlagOsPython, NllLossForwardKernelPython)
-REGISTER_IMPL_TO_DISPATCHER(NllLossBackwardFn, nll_loss_backward_dispatcher, FlagosDevice::kFlagOsPython, NllLossBackwardKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(NllLossForwardFn, nll_loss_forward_dispatcher, Backend::kFlagOsPython, NllLossForwardKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(NllLossBackwardFn, nll_loss_backward_dispatcher, Backend::kFlagOsPython, NllLossBackwardKernelPython)
 
 } // namespace at::native::flagos

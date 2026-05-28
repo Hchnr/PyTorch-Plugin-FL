@@ -18,6 +18,6 @@ at::Tensor SliceBackwardKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(SliceBackwardFn, slice_backward_dispatcher, FlagosDevice::kCuda, SliceBackwardKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(SliceBackwardFn, slice_backward_dispatcher, Backend::kCuda, SliceBackwardKernelCuda)
 
 } // namespace at::native::flagos

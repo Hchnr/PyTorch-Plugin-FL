@@ -273,7 +273,7 @@ PyTorch-Plugin-FL/
 │   └── csrc/ascend/          #   Ascend runtime (ACL-based memory, stream, device)
 ├── csrc/
 │   ├── aten/                 # ATen operator layer
-│   │   ├── common.{h,cc}     #   Backend config loading, FlagosDevice enum
+│   │   ├── common.{h,cc}     #   Backend config loading, Backend enum
 │   │   ├── dispatcher.h      #   Lightweight op dispatcher (replaces PyTorch DispatchStub)
 │   │   ├── device_boxing.h   #   Zero-copy flagos↔CUDA tensor metadata conversion
 │   │   ├── register.cc       #   PrivateUse1 dispatch key registration

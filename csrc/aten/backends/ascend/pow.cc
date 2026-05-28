@@ -21,6 +21,6 @@ at::Tensor PowTensorScalarKernelAscend(const at::Tensor& self, const at::Scalar&
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(PowTensorScalarFn, pow_tensor_scalar_dispatcher, FlagosDevice::kAscend, PowTensorScalarKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(PowTensorScalarFn, pow_tensor_scalar_dispatcher, Backend::kAscend, PowTensorScalarKernelAscend)
 
 } // namespace at::native::flagos

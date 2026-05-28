@@ -13,6 +13,6 @@ at::Tensor AllKernelPython(const at::Tensor& self) {
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(AllFn, all_dispatcher, FlagosDevice::kFlagOsPython, AllKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(AllFn, all_dispatcher, Backend::kFlagOsPython, AllKernelPython)
 
 } // namespace at::native::flagos

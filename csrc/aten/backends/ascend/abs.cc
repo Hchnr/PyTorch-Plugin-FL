@@ -22,6 +22,6 @@ at::Tensor AbsKernelAscend(const at::Tensor& self) {
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(AbsFn, abs_dispatcher, FlagosDevice::kAscend, AbsKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(AbsFn, abs_dispatcher, Backend::kAscend, AbsKernelAscend)
 
 } // namespace at::native::flagos

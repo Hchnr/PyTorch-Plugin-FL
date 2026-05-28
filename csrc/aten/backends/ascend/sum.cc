@@ -54,6 +54,6 @@ at::Tensor SumDimKernelAscend(const at::Tensor& self, at::OptionalIntArrayRef di
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(SumDimFn, sum_dim_dispatcher, FlagosDevice::kAscend, SumDimKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(SumDimFn, sum_dim_dispatcher, Backend::kAscend, SumDimKernelAscend)
 
 } // namespace at::native::flagos

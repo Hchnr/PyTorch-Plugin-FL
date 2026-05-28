@@ -70,6 +70,6 @@ at::Tensor CatKernelAscend(const at::ITensorListRef& tensors, int64_t dim) {
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(CatFn, cat_dispatcher, FlagosDevice::kAscend, CatKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(CatFn, cat_dispatcher, Backend::kAscend, CatKernelAscend)
 
 } // namespace at::native::flagos

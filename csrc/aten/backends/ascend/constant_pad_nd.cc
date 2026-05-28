@@ -35,6 +35,6 @@ at::Tensor ConstantPadNdKernelAscend(const at::Tensor& self, at::IntArrayRef pad
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(ConstantPadNdFn, constant_pad_nd_dispatcher, FlagosDevice::kAscend, ConstantPadNdKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(ConstantPadNdFn, constant_pad_nd_dispatcher, Backend::kAscend, ConstantPadNdKernelAscend)
 
 } // namespace at::native::flagos

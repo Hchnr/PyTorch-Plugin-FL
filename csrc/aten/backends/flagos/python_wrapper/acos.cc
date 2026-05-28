@@ -13,6 +13,6 @@ at::Tensor AcosKernelPython(const at::Tensor& self) {
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(AcosFn, acos_dispatcher, FlagosDevice::kFlagOsPython, AcosKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(AcosFn, acos_dispatcher, Backend::kFlagOsPython, AcosKernelPython)
 
 } // namespace at::native::flagos

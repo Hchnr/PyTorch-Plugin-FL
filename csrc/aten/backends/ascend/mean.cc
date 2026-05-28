@@ -55,6 +55,6 @@ at::Tensor MeanDimKernelAscend(
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(MeanDimFn, mean_dim_dispatcher, FlagosDevice::kAscend, MeanDimKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(MeanDimFn, mean_dim_dispatcher, Backend::kAscend, MeanDimKernelAscend)
 
 } // namespace at::native::flagos

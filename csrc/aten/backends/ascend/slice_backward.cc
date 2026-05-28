@@ -20,6 +20,6 @@ at::Tensor SliceBackwardKernelAscend(const at::Tensor& grad_output, at::IntArray
   return grad_input;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(SliceBackwardFn, slice_backward_dispatcher, FlagosDevice::kAscend, SliceBackwardKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(SliceBackwardFn, slice_backward_dispatcher, Backend::kAscend, SliceBackwardKernelAscend)
 
 } // namespace at::native::flagos

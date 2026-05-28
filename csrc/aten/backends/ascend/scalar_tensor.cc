@@ -22,6 +22,6 @@ at::Tensor ScalarTensorKernelAscend(
   return result;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(ScalarTensorFn, scalar_tensor_dispatcher, FlagosDevice::kAscend, ScalarTensorKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(ScalarTensorFn, scalar_tensor_dispatcher, Backend::kAscend, ScalarTensorKernelAscend)
 
 } // namespace at::native::flagos

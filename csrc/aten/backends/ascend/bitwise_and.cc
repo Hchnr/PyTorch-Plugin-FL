@@ -25,6 +25,6 @@ at::Tensor BitwiseAndTensorKernelAscend(const at::Tensor& self, const at::Tensor
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(BitwiseAndTensorFn, bitwise_and_tensor_dispatcher, FlagosDevice::kAscend, BitwiseAndTensorKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(BitwiseAndTensorFn, bitwise_and_tensor_dispatcher, Backend::kAscend, BitwiseAndTensorKernelAscend)
 
 } // namespace at::native::flagos

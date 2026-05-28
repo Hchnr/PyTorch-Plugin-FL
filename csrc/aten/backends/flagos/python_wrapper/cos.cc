@@ -13,6 +13,6 @@ at::Tensor CosKernelPython(const at::Tensor& self) {
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(CosFn, cos_dispatcher, FlagosDevice::kFlagOsPython, CosKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(CosFn, cos_dispatcher, Backend::kFlagOsPython, CosKernelPython)
 
 } // namespace at::native::flagos

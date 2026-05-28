@@ -41,6 +41,6 @@ at::Tensor SoftmaxKernelCuda(const at::Tensor& self, int64_t dim, bool half_to_f
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(SoftmaxFn, softmax_dispatcher, FlagosDevice::kCuda, SoftmaxKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(SoftmaxFn, softmax_dispatcher, Backend::kCuda, SoftmaxKernelCuda)
 
 } // namespace at::native::flagos

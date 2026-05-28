@@ -19,6 +19,6 @@ at::Tensor SinKernelAscend(const at::Tensor& self) {
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(SinFn, sin_dispatcher, FlagosDevice::kAscend, SinKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(SinFn, sin_dispatcher, Backend::kAscend, SinKernelAscend)
 
 } // namespace at::native::flagos

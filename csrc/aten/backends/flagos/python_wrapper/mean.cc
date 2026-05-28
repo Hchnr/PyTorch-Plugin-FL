@@ -14,6 +14,6 @@ at::Tensor MeanDimKernelPython(const at::Tensor& self, at::OptionalIntArrayRef d
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(MeanDimFn, mean_dim_dispatcher, FlagosDevice::kFlagOsPython, MeanDimKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(MeanDimFn, mean_dim_dispatcher, Backend::kFlagOsPython, MeanDimKernelPython)
 
 } // namespace at::native::flagos

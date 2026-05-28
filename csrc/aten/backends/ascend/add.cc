@@ -34,6 +34,6 @@ at::Tensor AddKernelAscend(
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(AddTensorFn, add_tensor_dispatcher, FlagosDevice::kAscend, AddKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(AddTensorFn, add_tensor_dispatcher, Backend::kAscend, AddKernelAscend)
 
 } // namespace at::native::flagos

@@ -21,6 +21,6 @@ at::Tensor EmbeddingDenseBackwardKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(EmbeddingDenseBackwardFn, embedding_dense_backward_dispatcher, FlagosDevice::kCuda, EmbeddingDenseBackwardKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(EmbeddingDenseBackwardFn, embedding_dense_backward_dispatcher, Backend::kCuda, EmbeddingDenseBackwardKernelCuda)
 
 } // namespace at::native::flagos

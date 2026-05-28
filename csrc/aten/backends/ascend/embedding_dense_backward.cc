@@ -26,6 +26,6 @@ at::Tensor EmbeddingDenseBackwardKernelAscend(const at::Tensor& grad_output,
   return grad_weight;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(EmbeddingDenseBackwardFn, embedding_dense_backward_dispatcher, FlagosDevice::kAscend, EmbeddingDenseBackwardKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(EmbeddingDenseBackwardFn, embedding_dense_backward_dispatcher, Backend::kAscend, EmbeddingDenseBackwardKernelAscend)
 
 } // namespace at::native::flagos

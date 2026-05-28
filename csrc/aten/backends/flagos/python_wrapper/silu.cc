@@ -13,6 +13,6 @@ at::Tensor SiluKernelPython(const at::Tensor& self) {
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(SiluFn, silu_dispatcher, FlagosDevice::kFlagOsPython, SiluKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(SiluFn, silu_dispatcher, Backend::kFlagOsPython, SiluKernelPython)
 
 } // namespace at::native::flagos

@@ -48,6 +48,6 @@ at::Tensor IndexTensorKernelPython(const at::Tensor& self, const c10::List<::std
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(IndexTensorFn, index_tensor_dispatcher, FlagosDevice::kFlagOsPython, IndexTensorKernelPython)
+REGISTER_IMPL_TO_DISPATCHER(IndexTensorFn, index_tensor_dispatcher, Backend::kFlagOsPython, IndexTensorKernelPython)
 
 } // namespace at::native::flagos

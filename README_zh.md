@@ -271,7 +271,7 @@ PyTorch-Plugin-FL/
 │   └── macros.h              #   通用宏定义
 ├── csrc/
 │   ├── aten/                 # ATen 算子层
-│   │   ├── common.{h,cc}     #   后端配置加载、FlagosDevice 枚举
+│   │   ├── common.{h,cc}     #   后端配置加载、Backend 枚举
 │   │   ├── dispatcher.h      #   轻量算子 dispatcher（替代 PyTorch DispatchStub）
 │   │   ├── device_boxing.h   #   零拷贝 flagos↔CUDA tensor 元数据转换
 │   │   ├── register.cc       #   PrivateUse1 dispatch key 注册

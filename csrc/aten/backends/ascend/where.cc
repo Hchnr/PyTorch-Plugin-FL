@@ -29,6 +29,6 @@ at::Tensor WhereSelfKernelAscend(const at::Tensor& condition, const at::Tensor& 
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(WhereSelfFn, where_self_dispatcher, FlagosDevice::kAscend, WhereSelfKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(WhereSelfFn, where_self_dispatcher, Backend::kAscend, WhereSelfKernelAscend)
 
 } // namespace at::native::flagos

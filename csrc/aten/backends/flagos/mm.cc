@@ -17,6 +17,6 @@ void MmKernelFlaggems(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(MmFn, mm_dispatcher, FlagosDevice::kFlagOs, MmKernelFlaggems)
+REGISTER_IMPL_TO_DISPATCHER(MmFn, mm_dispatcher, Backend::kFlagOs, MmKernelFlaggems)
 
 } // namespace at::native::flagos

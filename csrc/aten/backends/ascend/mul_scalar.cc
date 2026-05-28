@@ -21,6 +21,6 @@ at::Tensor MulScalarKernelAscend(const at::Tensor& self, const at::Scalar& other
   return out;
 }
 
-REGISTER_IMPL_TO_DISPATCHER(MulScalarFn, mul_scalar_dispatcher, FlagosDevice::kAscend, MulScalarKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(MulScalarFn, mul_scalar_dispatcher, Backend::kAscend, MulScalarKernelAscend)
 
 } // namespace at::native::flagos

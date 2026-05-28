@@ -70,7 +70,7 @@ at::Tensor NllLossBackwardKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(NllLossForwardFn, nll_loss_forward_dispatcher, FlagosDevice::kCuda, NllLossForwardKernelCuda)
-REGISTER_IMPL_TO_DISPATCHER(NllLossBackwardFn, nll_loss_backward_dispatcher, FlagosDevice::kCuda, NllLossBackwardKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(NllLossForwardFn, nll_loss_forward_dispatcher, Backend::kCuda, NllLossForwardKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(NllLossBackwardFn, nll_loss_backward_dispatcher, Backend::kCuda, NllLossBackwardKernelCuda)
 
 } // namespace at::native::flagos

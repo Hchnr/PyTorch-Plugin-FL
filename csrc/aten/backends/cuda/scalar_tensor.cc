@@ -26,6 +26,6 @@ at::Tensor ScalarTensorKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(ScalarTensorFn, scalar_tensor_dispatcher, FlagosDevice::kCuda, ScalarTensorKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(ScalarTensorFn, scalar_tensor_dispatcher, Backend::kCuda, ScalarTensorKernelCuda)
 
 } // namespace at::native::flagos

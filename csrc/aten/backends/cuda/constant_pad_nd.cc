@@ -19,6 +19,6 @@ at::Tensor ConstantPadNdKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(ConstantPadNdFn, constant_pad_nd_dispatcher, FlagosDevice::kCuda, ConstantPadNdKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(ConstantPadNdFn, constant_pad_nd_dispatcher, Backend::kCuda, ConstantPadNdKernelCuda)
 
 } // namespace at::native::flagos

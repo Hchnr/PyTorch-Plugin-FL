@@ -18,6 +18,6 @@ at::Tensor EmbeddingKernelCuda(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(EmbeddingFn, embedding_dispatcher, FlagosDevice::kCuda, EmbeddingKernelCuda)
+REGISTER_IMPL_TO_DISPATCHER(EmbeddingFn, embedding_dispatcher, Backend::kCuda, EmbeddingKernelCuda)
 
 } // namespace at::native::flagos

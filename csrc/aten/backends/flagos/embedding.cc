@@ -17,6 +17,6 @@ at::Tensor EmbeddingKernelFlaggems(
 
 } // namespace
 
-REGISTER_IMPL_TO_DISPATCHER(EmbeddingFn, embedding_dispatcher, FlagosDevice::kFlagOs, EmbeddingKernelFlaggems)
+REGISTER_IMPL_TO_DISPATCHER(EmbeddingFn, embedding_dispatcher, Backend::kFlagOs, EmbeddingKernelFlaggems)
 
 } // namespace at::native::flagos
