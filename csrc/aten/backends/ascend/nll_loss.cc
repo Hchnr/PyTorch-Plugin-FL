@@ -85,7 +85,7 @@ at::Tensor NllLossBackwardKernelAscend(
   return grad_input;
 }
 
-FLAGOS_REGISTER_DISPATCH(NllLossForwardFn, nll_loss_forward_stub, FlagosDevice::kAscend, NllLossForwardKernelAscend)
-FLAGOS_REGISTER_DISPATCH(NllLossBackwardFn, nll_loss_backward_stub, FlagosDevice::kAscend, NllLossBackwardKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(NllLossForwardFn, nll_loss_forward_dispatcher, Backend::kAscend, NllLossForwardKernelAscend)
+REGISTER_IMPL_TO_DISPATCHER(NllLossBackwardFn, nll_loss_backward_dispatcher, Backend::kAscend, NllLossBackwardKernelAscend)
 
 } // namespace at::native::flagos
