@@ -119,6 +119,9 @@ def build_deps():
     flaggems_dir = os.environ.get("FLAGGEMS_DIR")
     if flaggems_dir:
         cmake_args.append(f"-DFlagGems_DIR={flaggems_dir}")
+    flaggems_source_dir = os.environ.get("FLAGGEMS_SOURCE_DIR")
+    if flaggems_source_dir:
+        cmake_args.append(f"-DFLAGGEMS_SOURCE_DIR={flaggems_source_dir}")
 
     if ACCELERATOR == "maca":
         # Muxi MACA SDK: no nvcc needed. CMakeLists.txt pre-creates
