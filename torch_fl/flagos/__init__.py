@@ -119,6 +119,20 @@ def _lazy_init():
 from .random import *  # noqa: F403, E402
 
 
+# default_generators: list of one Generator per device, required by FlagGems
+class _DefaultGenerators:
+    """Lazy list-like accessor for per-device default generators."""
+
+    def __getitem__(self, device):
+        return _C._get_default_generator(device)
+
+    def __len__(self):
+        return device_count()
+
+
+default_generators = _DefaultGenerators()
+
+
 # ---------------------------------------------------------------------------
 # Stream API required by FSDP
 # Since flagos shares the same GPU as CUDA, we proxy to torch.cuda streams.
@@ -179,4 +193,5 @@ __all__ = [
     "Event",
     "current_stream",
     "stream",
+    "default_generators",
 ]
