@@ -12,6 +12,7 @@
 
 extern "C" {
 
+__attribute__((visibility("default")))
 void* FlagOS_GetCurrentStream(int device_index) {
   (void)device_index;
   return (void*)at::native::flagos::ascend::GetDefaultAclStream();
