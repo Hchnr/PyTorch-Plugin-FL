@@ -121,7 +121,19 @@ if(FLAGGEMS_KERNEL)
     set(FLAGGEMS_DIR "$ENV{FLAGGEMS_DIR}")
   endif()
   if(NOT FLAGGEMS_DIR)
-    set(FLAGGEMS_DIR "/root/miniconda3/envs/pytorch/lib/python3.12/site-packages/flag_gems/lib/cmake/FlagGems")
+    # Auto-detect from installed flag_gems package
+    execute_process(
+      COMMAND ${PYTHON_EXECUTABLE} -c "import flag_gems; print(flag_gems.__path__[0])"
+      OUTPUT_VARIABLE _FLAGGEMS_PKG_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
+      RESULT_VARIABLE _FLAGGEMS_DETECT_RET
+    )
+    if(_FLAGGEMS_DETECT_RET EQUAL 0 AND _FLAGGEMS_PKG_PATH)
+      set(FLAGGEMS_DIR "${_FLAGGEMS_PKG_PATH}/lib/cmake/FlagGems")
+    else()
+      set(FLAGGEMS_DIR "/root/miniconda3/envs/pytorch/lib/python3.12/site-packages/flag_gems/lib/cmake/FlagGems")
+    endif()
   endif()
   # FlagGemsConfig.cmake calls find_dependency(Torch MODULE), which needs FindTorch.cmake in MODULE_PATH
   list(APPEND CMAKE_MODULE_PATH "${FLAGGEMS_DIR}")
