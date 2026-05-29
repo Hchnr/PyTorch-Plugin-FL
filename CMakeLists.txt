@@ -151,6 +151,11 @@ if(FLAGGEMS_KERNEL)
   endif()
   message(STATUS "FlagGems cmake dir: ${FLAGGEMS_DIR}")
   # FlagGemsConfig.cmake calls find_dependency(Torch MODULE), which needs FindTorch.cmake in MODULE_PATH
+  # Also add FlagGems source cmake/ dir for FindTorch.cmake
+  set(_FLAGGEMS_SOURCE_CMAKE "$ENV{FLAGGEMS_SOURCE_DIR}")
+  if(_FLAGGEMS_SOURCE_CMAKE AND EXISTS "${_FLAGGEMS_SOURCE_CMAKE}/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${_FLAGGEMS_SOURCE_CMAKE}/cmake")
+  endif()
   list(APPEND CMAKE_MODULE_PATH "${FLAGGEMS_DIR}")
   find_package(FlagGems REQUIRED PATHS "${FLAGGEMS_DIR}" NO_DEFAULT_PATH)
 
