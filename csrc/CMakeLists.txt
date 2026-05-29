@@ -33,7 +33,9 @@ if(FLAGGEMS_KERNEL AND ACCELERATOR STREQUAL "ascend")
       ${CMAKE_CURRENT_SOURCE_DIR}
       ${ASCEND_HOME}/include
   )
-  target_link_libraries(flagos_stream PRIVATE torch_cpu_library)
+  find_library(ASCENDCL_LIB ascendcl
+      PATHS ${ASCEND_HOME}/lib64)
+  target_link_libraries(flagos_stream PRIVATE torch_cpu_library ${ASCENDCL_LIB})
   install(TARGETS flagos_stream
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
