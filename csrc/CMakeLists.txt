@@ -11,6 +11,8 @@ file(GLOB_RECURSE SOURCE_FILES
 
 # Exclude runtime/accelerator (built separately as subdirectory)
 list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/runtime/accelerator/.*")
+# flagos_stream_api is built as a separate shared lib
+list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/runtime/flagos_stream_api\\.cc")
 
 # Exclude backend kernel directories based on options
 if(NOT CUDA_KERNEL)
@@ -21,6 +23,17 @@ if(NOT FLAGGEMS_KERNEL)
 endif()
 if(NOT ASCEND_KERNEL)
   list(FILTER SOURCE_FILES EXCLUDE REGEX ".*/aten/backends/ascend/.*")
+endif()
+
+# Build flagos_stream as a standalone shared lib so liboperators.so can resolve it at runtime
+if(FLAGGEMS_KERNEL AND ACCELERATOR STREQUAL "ascend")
+  add_library(flagos_stream SHARED "${CMAKE_CURRENT_SOURCE_DIR}/runtime/flagos_stream_api.cc")
+  target_compile_definitions(flagos_stream PRIVATE USE_ASCEND=1)
+  target_include_directories(flagos_stream PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(flagos_stream PRIVATE torch_cpu_library)
+  install(TARGETS flagos_stream
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 endif()
 
 add_library(${LIBRARY_NAME} SHARED ${SOURCE_FILES})

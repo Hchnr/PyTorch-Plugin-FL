@@ -28,6 +28,15 @@ if is_maca_available():
     patch_torch_cuda_for_maca()
 
 
+# Load libflagos_stream.so with RTLD_GLOBAL so that liboperators.so (FlagGems)
+# can resolve FlagOS_GetCurrentStream at runtime.
+import ctypes  # noqa: E402
+import os as _os  # noqa: E402
+
+_flagos_stream_path = _os.path.join(_os.path.dirname(__file__), "lib", "libflagos_stream.so")
+if _os.path.exists(_flagos_stream_path):
+    ctypes.CDLL(_flagos_stream_path, mode=ctypes.RTLD_GLOBAL)
+
 import torch_fl._C  # type: ignore[misc]  # noqa: E402, F401
 from . import flagos  # noqa: E402
 
