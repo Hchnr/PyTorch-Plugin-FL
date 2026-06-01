@@ -202,6 +202,16 @@ at::Tensor CallPythonOp_TTT(const char* func_name, const at::Tensor& a, const at
   return PythonToTensor(result);
 }
 
+at::Tensor CallPythonOp_TD(const char* func_name, const at::Tensor& self,
+                            std::optional<at::ScalarType> dtype) {
+  auto& cache = GetCache();
+  cache.EnsureInitialized();
+  py::gil_scoped_acquire gil;
+  auto func = cache.GetFunc(func_name);
+  py::object result = func(TensorToPython(self), "dtype"_a = OptionalDtypeToPython(dtype));
+  return PythonToTensor(result);
+}
+
 at::Tensor CallPythonOp_Generic(const char* func_name, const std::vector<c10::IValue>& args) {
   auto& cache = GetCache();
   cache.EnsureInitialized();
