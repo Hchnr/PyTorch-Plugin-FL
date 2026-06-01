@@ -148,10 +148,30 @@ class Stream(torch.cuda.Stream):
         return super().__new__(cls, device=device, priority=priority, **kwargs)
 
 
-class Event(torch.cuda.Event):
-    """Flagos event that wraps a CUDA event."""
+class Event:
+    """Simple timing event using host-side timestamps after device sync."""
 
-    pass
+    def __init__(self, enable_timing=False, blocking=False, interprocess=False, external=False):
+        self._time = None
+
+    def record(self, stream=None):
+        import time as _time
+        _C._synchronize()
+        self._time = _time.perf_counter()
+
+    def elapsed_time(self, end_event):
+        if self._time is None or end_event._time is None:
+            raise RuntimeError("Events have not been recorded")
+        return (end_event._time - self._time) * 1000.0
+
+    def synchronize(self):
+        _C._synchronize()
+
+    def query(self):
+        return True
+
+    def wait(self, stream=None):
+        pass
 
 
 def current_stream(device=None):

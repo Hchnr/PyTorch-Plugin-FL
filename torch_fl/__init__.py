@@ -52,6 +52,44 @@ _autograd_lib = None
 _registered_ops = []
 
 
+def _patch_flaggems_codegen_config():
+    """
+    Configure FlagGems to use ASCEND codegen config on the flagos device.
+
+    FlagGems uses GEMS_VENDOR env var to detect the hardware vendor. On Ascend
+    hardware without torch_npu, FlagGems can't auto-detect the vendor and falls
+    back to NVIDIA config (prefer_block_pointer=True). This triggers a
+    triton-ascend compiler bug with tl.make_block_ptr.
+
+    Fix: set GEMS_VENDOR=ascend so FlagGems uses the ASCEND codegen config
+    (prefer_block_pointer=False), and register torch.flagos as torch.npu shim
+    so FlagGems' gen_torch_device_object('ascend') resolves correctly.
+    """
+    import os
+    import sys
+
+    # Set vendor before FlagGems runtime initializes
+    if "GEMS_VENDOR" not in os.environ:
+        os.environ["GEMS_VENDOR"] = "ascend"
+
+    # FlagGems' ASCEND backend expects torch.npu to exist (device_name="npu").
+    # Provide torch.flagos as a shim so gen_torch_device_object() succeeds.
+    if not hasattr(torch, "npu"):
+        torch.npu = flagos
+
+    # FlagGems' ASCEND backend imports torch_npu in _get_vendor_from_quick_cmd.
+    # Provide a minimal shim module so the import doesn't fail.
+    if "torch_npu" not in sys.modules:
+        import types
+        _npu_shim = types.ModuleType("torch_npu")
+        _npu_shim.npu = flagos
+        sys.modules["torch_npu"] = _npu_shim
+
+
+# Patch FlagGems codegen config before any FlagGems code is imported
+_patch_flaggems_codegen_config()
+
+
 def _patch_cuda_device_context():
     """
     Monkey-patch torch.cuda.device to handle flagos devices.
