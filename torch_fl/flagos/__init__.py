@@ -78,6 +78,14 @@ def _lazy_init():
     _C._init()
     _initialized = True
 
+    # Eagerly import FlagGems to avoid deep import chain during dispatch.
+    # FlagGems has a deep lazy import chain (fused → FLA → utils → models → sqlalchemy)
+    # that can exceed Python's recursion limit when triggered inside PyTorch dispatch.
+    try:
+        import flag_gems  # noqa: F401
+    except ImportError:
+        pass  # FlagGems not installed, skip
+
     # Monkey-patch Tensor.__getitem__ to work around PyTorch C++ dispatch issue
     # with advanced indexing on custom devices. The C++ __getitem__ fails for
     # patterns like x[:, tensor_idx] but torch.ops.aten.index.Tensor works.
