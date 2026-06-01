@@ -98,7 +98,7 @@ py::object IntArrayRefToPython(at::IntArrayRef arr) {
 // Convert OptionalIntArrayRef to Python
 // Empty dim list means "reduce all dims" which maps to None in FlagGems.
 py::object OptionalIntArrayRefToPython(at::OptionalIntArrayRef arr) {
-  if (!arr.has_value() || arr->empty()) return py::none();
+  if (!arr.has_value()) return py::none();
   return IntArrayRefToPython(*arr);
 }
 
