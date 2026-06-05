@@ -27,9 +27,9 @@ at::Tensor IndexKernelMetax(
   return result_cpu.to(self.device(), result_cpu.scalar_type());
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     IndexTensorFn, index_tensor_dispatcher, Backend::kMetax, IndexKernelMetax)
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos

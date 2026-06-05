@@ -108,7 +108,7 @@ at::Tensor NllLossBackwardKernelMetax(
   return CopyToDevice(out_cpu, grad_output);
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     NllLossForwardFn,
@@ -121,4 +121,4 @@ REGISTER_IMPL_TO_DISPATCHER(
     Backend::kMetax,
     NllLossBackwardKernelMetax)
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos

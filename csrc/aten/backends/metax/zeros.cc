@@ -28,9 +28,9 @@ at::Tensor ZerosKernelMetax(
   return result;
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     ZerosFn, zeros_dispatcher, Backend::kMetax, ZerosKernelMetax)
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos

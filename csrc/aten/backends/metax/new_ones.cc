@@ -31,9 +31,9 @@ at::Tensor NewOnesKernelMetax(
       std::nullopt);
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     NewOnesFn, new_ones_dispatcher, Backend::kMetax, NewOnesKernelMetax)
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos

@@ -21,7 +21,7 @@ at::Tensor EmbeddingDenseBackwardKernelMetax(
   return out_cpu.to(grad_output.device(), out_cpu.scalar_type());
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     EmbeddingDenseBackwardFn,
@@ -29,4 +29,4 @@ REGISTER_IMPL_TO_DISPATCHER(
     Backend::kMetax,
     EmbeddingDenseBackwardKernelMetax)
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos

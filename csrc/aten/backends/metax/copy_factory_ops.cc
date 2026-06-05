@@ -28,7 +28,7 @@ at::Tensor ToCopyKernelMetax(
       self, dtype, layout, device, pin_memory, non_blocking, memory_format);
 }
 
-}  // namespace
+} // namespace
 
 REGISTER_IMPL_TO_DISPATCHER(
     LocalScalarDenseFn,
@@ -38,4 +38,4 @@ REGISTER_IMPL_TO_DISPATCHER(
 REGISTER_IMPL_TO_DISPATCHER(
     ToCopyFn, to_copy_dispatcher, Backend::kMetax, ToCopyKernelMetax);
 
-}  // namespace at::native::flagos
+} // namespace at::native::flagos
