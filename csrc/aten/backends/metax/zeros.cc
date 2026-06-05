@@ -30,7 +30,7 @@ at::Tensor ZerosKernelMetax(
 
 }  // namespace
 
-FLAGOS_REGISTER_DISPATCH(
-    ZerosFn, zeros_stub, FlagosDevice::kMetax, ZerosKernelMetax)
+REGISTER_IMPL_TO_DISPATCHER(
+    ZerosFn, zeros_dispatcher, Backend::kMetax, ZerosKernelMetax)
 
 }  // namespace at::native::flagos

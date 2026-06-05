@@ -29,7 +29,7 @@ at::Tensor IndexKernelMetax(
 
 }  // namespace
 
-FLAGOS_REGISTER_DISPATCH(
-    IndexTensorFn, index_tensor_stub, FlagosDevice::kMetax, IndexKernelMetax)
+REGISTER_IMPL_TO_DISPATCHER(
+    IndexTensorFn, index_tensor_dispatcher, Backend::kMetax, IndexKernelMetax)
 
 }  // namespace at::native::flagos

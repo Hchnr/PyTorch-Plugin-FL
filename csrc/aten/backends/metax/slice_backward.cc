@@ -25,7 +25,7 @@ at::Tensor SliceBackwardKernelMetax(
 
 }  // namespace
 
-FLAGOS_REGISTER_DISPATCH(
-    SliceBackwardFn, slice_backward_stub, FlagosDevice::kMetax, SliceBackwardKernelMetax)
+REGISTER_IMPL_TO_DISPATCHER(
+    SliceBackwardFn, slice_backward_dispatcher, Backend::kMetax, SliceBackwardKernelMetax)
 
 }  // namespace at::native::flagos

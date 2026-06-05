@@ -19,7 +19,7 @@ at::Tensor SiluBackwardKernelMetax(
 
 }  // namespace
 
-FLAGOS_REGISTER_DISPATCH(
-    SiluBackwardFn, silu_backward_stub, FlagosDevice::kMetax, SiluBackwardKernelMetax)
+REGISTER_IMPL_TO_DISPATCHER(
+    SiluBackwardFn, silu_backward_dispatcher, Backend::kMetax, SiluBackwardKernelMetax)
 
 }  // namespace at::native::flagos
