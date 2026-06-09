@@ -90,11 +90,12 @@ def _lazy_init():
     # with advanced indexing on custom devices. The C++ __getitem__ fails for
     # patterns like x[:, tensor_idx] but torch.ops.aten.index.Tensor works.
     import torch
+
     _original_getitem = torch.Tensor.__getitem__
 
     def _patched_getitem(self, indices):
         # Only patch for our device
-        if self.device.type not in ('privateuseone', 'flagos'):
+        if self.device.type not in ("privateuseone", "flagos"):
             return _original_getitem(self, indices)
 
         # Handle tuple of indices with at least one tensor
@@ -159,11 +160,14 @@ class Stream(torch.cuda.Stream):
 class Event:
     """Simple timing event using host-side timestamps after device sync."""
 
-    def __init__(self, enable_timing=False, blocking=False, interprocess=False, external=False):
+    def __init__(
+        self, enable_timing=False, blocking=False, interprocess=False, external=False
+    ):
         self._time = None
 
     def record(self, stream=None):
         import time as _time
+
         _C._synchronize()
         self._time = _time.perf_counter()
 
