@@ -11,10 +11,63 @@ Usage:
 
 import pytest
 import torch
+from torch.utils._python_dispatch import TorchDispatchMode
 import torch_fl  # noqa: F401
 
 
 DEVICE = "flagos:0"
+
+
+class AtenOpCollector(TorchDispatchMode):
+    """Collect ATen ops with call depth info."""
+
+    def __init__(self):
+        self.ops = []  # list of (depth, op_name)
+        self._depth = 0
+
+    def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+        self.ops.append((self._depth, str(func)))
+        self._depth += 1
+        try:
+            return func(*args, **(kwargs or {}))
+        finally:
+            self._depth -= 1
+
+    def print_report(self):
+        print("\n=== ATen Op Dispatch Trace ===")
+        print(f"{'depth':<7} {'label':<12} {'op'}")
+        print("-" * 70)
+        for idx, (depth, op) in enumerate(self.ops):
+            indent = "│ " * depth
+            # leaf = no child (next entry isn't deeper)
+            is_top = depth == 0
+            next_depth = self.ops[idx + 1][0] if idx + 1 < len(self.ops) else 0
+            is_leaf = next_depth <= depth
+            if is_top and is_leaf:
+                label = "[top+leaf]"
+            elif is_top:
+                label = "[top]"
+            elif is_leaf:
+                label = "[leaf]"
+            else:
+                label = "[mid]"
+            print(f"{depth:<7} {label:<12} {indent}{op}")
+        print("-" * 70)
+        print(f"Total ops: {len(self.ops)}, max depth: {max(d for d, _ in self.ops)}")
+        print("=== End Trace ===\n")
+
+
+class TestDivScalarDispatchTrace:
+    """Print dispatch trace to visualize top-level vs leaf ops."""
+
+    @pytest.mark.anyplatform
+    def test_div_scalar_trace(self):
+        torch.manual_seed(0)
+        a = torch.randn(4, 4, device=DEVICE)
+        collector = AtenOpCollector()
+        with collector:
+            torch.div(a, 3.0)
+        collector.print_report()
 
 
 class TestDivScalarCorrectness:
